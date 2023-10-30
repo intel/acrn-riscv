@@ -1,0 +1,53 @@
+#!/bin/bash
+#
+# Copyright (C) <2018> Intel Corporation
+# SPDX-License-Identifier: BSD-3-Clause
+#
+
+if [ $# != 13 ]; then
+        logger "Expected 13 arguments, got $#"
+        exit -1
+fi
+
+# Error Handling
+default_core_pattern_file="/var/log/crashlog/default_core_pattern"
+
+if [ ! -f $default_core_pattern_file ]; then
+	logger "File default_core_pattern doesn't exist under /var/log/crashlog"
+	exit -1
+fi
+
+# We know the parameter order
+my_order=(%E %P %u %g %s %t %c %h %e %p %i %I %d)
+my_params=($*)
+
+# An O(n^2) function to look up the value
+function get_params()
+{
+	local ret=""
+	for args in $*
+	do
+		for index in ${!my_order[@]}
+		do
+			if [ ${my_order[${index}]} = ${args} ]
+			then
+				ret="${ret} ${my_params[${index}]}"
+				break
+			fi
+		done
+	done
+	echo ${ret}
+}
+
+# get default core_pattern parameters list
+default_content=`cat $default_core_pattern_file`
+default_params=${default_content#* }
+
+# abstract the application of the default core_pattern
+t_app=${default_content%% *}
+default_app=${t_app#*|}
+
+usercrash_var=$(get_params "%p %e %s")
+default_var=$(get_params ${default_params})
+
+tee >(/usr/bin/usercrash_c ${usercrash_var}) | ${default_app} ${default_var}

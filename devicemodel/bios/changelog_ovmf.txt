@@ -1,0 +1,112 @@
+OVMF release v2.1
+
+- Enable AcrnLapicTimerDxe
+- Enable AcrnTscTimerLib
+- Lapic Timer Driver
+- Change LVT timer register structure of Lapic
+- Add AcrnTscTimerLib
+
+OVMF release v2.0
+
+- Add Platform GOP Policy
+- Add MemoryFence to AcrnEmuVariableFvbRuntimeDxe
+- UefiCpuPkg/CpuExceptionHandlerLib: Fix split lock
+- OvmfPkg/SataControllerDxe: Calculate ChannelCount based on PI value
+
+OVMF release v1.6
+
+- Enable fstack-protector-strong for OVMF x64 and gcc5
+
+OVMF release v1.5
+
+- Upgrade OpenSSL to 1.1.1d - cherry-picked the following commits from master:
+  - 4d613feee5 - CryptoPkg/OpensslLib.inf: list OpenSSL local header
+    "ms/uplink.h" (2019-12-02) <Laszlo Ersek>
+  - b49a6c8f80 - CryptoPkg/OpensslLib: improve INF file consistency
+    (2019-12-02) <Laszlo Ersek>
+  - 1bcc65b9a1 - CryptoPkg: Upgrade OpenSSL to 1.1.1d (2019-11-05) <Shenglei
+    Zhang>
+  - 9f4fbd56d4 - CryptoPkg/OpensslLib: Update process_files.pl to generate .h
+    files (2019-10-30) <Shenglei Zhang>
+  - 8906f076de - CryptoPkg/OpensslLib: Add missing header files in INF file
+    (2019-08-16) <Shenglei Zhang>
+  - 51f7a3e6c5 - CryptoPkg/OpensslLib: Exclude err_all.c in process_files.pl
+    (2019-06-25) <Xiaoyu Lu>
+  - b86fbe1f98 - CryptoPkg/OpensslLib: disable autoload-config for OpenSSL
+    (2019-06-21) <Xiaoyu Lu>
+  - 20d2e5a125 - CryptoPkg/OpensslLib: fix build break caused by missing
+    library (2019-06-06) <Wang, Jian J>
+  - 0a1b13fd4d - CryptoPkg/OpensslLib: fix VS2017 build failure (2019-06-05)
+    <Wang, Jian J>
+  - 456dd8b99f - CryptoPkg: Upgrade OpenSSL to 1.1.1b (2019-06-03) <XiaoyuX
+    Lu>
+  - b739678918 - CryptoPkg/OpensslLib: Add functions for upgrading
+    OpenSSL1_1_1b (2019-06-03) <XiaoyuX Lu>
+  - 5db2fbff23 - CryptoPkg/OpensslLib: Prepare for upgrading OpenSSL
+    (2019-06-03) <XiaoyuX Lu>
+  - 7eee048894 - CryptoPkg/OpensslLib: Exclude unnecessary files in
+    process_files.pl (2019-06-03) <Xiaoyu Lu>
+  - 6fcc3d68eb - CryptoPkg/OpensslLib: Modify process_files.pl for upgrading
+    OpenSSL (2019-06-03) <Xiaoyu Lu>
+  - a18f784cfd - Upgrade OpenSSL to 1.1.0j (2018-12-21) <Jian J Wang>
+- Security hardening for OVMF build
+
+OVMF release v1.4
+
+- Add back USB keyboard support
+
+OVMF release v1.3
+
+- GvtGopDxe: Fix crash if failed to get a valid mode
+- GvtGopDxe: Enable GOP with parameters from vgt interface
+- OvmfPkg/GvtGopDxe: Add GvtGopDxe skeleton driver
+- Add back NVME support
+- Update Readme.md
+
+OVMF release v1.2
+
+- Add support for VRING_USED_F_NO_NOTIFY in virtio devices
+- Revert "Initialize EmuVariable NV storage memory with varstore from ROM"
+- Add AcrnEmuVariableFvbRuntimeDxe to support NV storage
+- Enable ahci driver.
+
+Secure boot is supported from this release onwards.
+
+OVMF release v1.1
+
+- Cleanup unused and unsupported function of AcrnRtc
+- Remove SMBIOS support
+- Add ResetSystemLib for ACRN
+- Disable BhyveFwCtlLib
+- Disable COM2
+- Avoid connecting all system drivers
+- Speed up Ps2KeyboardDxe
+- Created new Rtc driver and optimized RtcInit and RtcGetTime
+- Initialize EmuVariable NV storage memory with varstore from ROM
+- Switch to BasePciLibPciExpress
+- Avoid exhaustive PCI bus scanning during PCI host bridge initialization
+- Add support for ACRN platform initialization
+- Add ACRN's Host Bridge Device ID
+
+OVMF release v0.8
+
+- Remove QemuFwCfg/QemuFwCfgS3Lib
+- Use ACRN E820 map to query system memory size
+- Support 64-bit PCI host aperture via ACRN E820
+- Remove debug code in release build
+- Take out unnecessary OVMF drivers
+- Revert "Enable MP support"
+- Use CPUID 0x40000010 to determine tsc frequency
+
+OVMF release v0.7
+
+- Change system timer from 8254 to HPET
+- Fix UEFI console UI issue
+- Enable MP support
+- Install ACRN DM's ACPI tables
+- Remove Bhyve ACPI tables
+- fix backspace issue in UEFI shell
+- clear CD bit in SEC
+- Revert "workaround: disable CR0.CD"
+- workaround: disable CR0.CD
+- boots Clear Linux (1 vcpu)

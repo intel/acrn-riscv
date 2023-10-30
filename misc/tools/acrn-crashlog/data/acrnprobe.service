@@ -1,0 +1,14 @@
+[Unit]
+Description=ACRN crashlog probe
+Requires=telemd.socket
+Requires=usercrash_s
+After=acrnlog.service
+After=usercrash.service
+After=prepare.service
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/acrnprobe
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,103 @@
+ENTRY(cpu_primary_start_32)
+
+MEMORY
+{
+    /* Low 1MB of memory for secondary processor start-up */
+    lowram  :   ORIGIN = 0, LENGTH = CONFIG_LOW_RAM_SIZE
+
+    /* 32 MBytes of RAM for HV */
+    ram     :   ORIGIN = CONFIG_HV_RAM_START, LENGTH = CONFIG_HV_RAM_SIZE
+}
+
+SECTIONS
+{
+    .boot :
+    {
+        _ld_ram_start = . ;
+        KEEP(*(multiboot_header)) ;
+    } > ram
+
+    .entry :
+    {
+        KEEP(*(entry)) ;
+	ld_entry_end = . ;
+
+    } > ram
+
+    .text :
+    {
+        *(.text .text*) ;
+        *(.gnu.linkonce.t*)
+        *(.note.gnu.build-id)
+        *(.retpoline_thunk)
+    } > ram
+
+     /*Align text top boundary to 2MBytes.*/
+     . = ALIGN(0x200000);
+     ld_text_end = . ;
+
+    .rodata :
+    {
+        *(.rodata*) ;
+
+    } > ram
+
+	.rela :
+	{
+		*(.rela*)
+		*(.dyn*)
+	} > ram
+
+	. = ALIGN(4) ;
+    ld_trampoline_load = .;
+
+    .trampoline : AT (ld_trampoline_load)
+    {
+        ld_trampoline_start = .;
+        *(.trampoline_reset);
+        . = ALIGN(4);
+        ld_trampoline_end = .;
+
+    } > lowram
+
+    ld_trampoline_size = ld_trampoline_end - ld_trampoline_start;
+
+    .data (ld_trampoline_load + ld_trampoline_size):
+    {
+        *(.data) ;
+        *(.data*) ;
+        *(.sdata)
+        *(.gnu.linkonce.d*)
+
+    } > ram
+
+    .boot_stack :
+    {
+    /* 4K for the boot stack */
+        . += 4096;
+        stack_for_boot = .;
+        . = ALIGN(4);
+    } > ram
+
+    .bss_noinit (NOLOAD):
+    {
+	. = ALIGN(4) ;
+	*(.bss_noinit) ;
+	*(.bss_noinit*) ;
+	. = ALIGN(4) ;
+    } > ram
+
+    .bss (NOLOAD):
+    {
+        . = ALIGN(4) ;
+        ld_bss_start = . ;
+        *(.bss) ;
+        *(.bss*) ;
+        *(COMMON) ;
+        . = ALIGN(4) ;
+        ld_bss_end = . ;
+    } > ram
+
+    _ld_ram_size = LENGTH(ram) ;
+    _ld_ram_end = _ld_ram_size + _ld_ram_start ;
+}

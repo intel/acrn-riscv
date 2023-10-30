@@ -1,0 +1,10 @@
+[Unit]
+Description=ACRN hypervisor log
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/acrnlog
+
+[Install]
+WantedBy=multi-user.target
+
