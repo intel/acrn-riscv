@@ -1,0 +1,12 @@
+#ifndef __RISCV_STRING_H__
+#define __RISCV_STRING_H__
+
+#endif /* __RISCV_STRING_H__ */
+/*
+ * Local variables:
+ * mode: C
+ * c-file-style: "BSD"
+ * c-basic-offset: 4
+ * indent-tabs-mode: nil
+ * End:
+ */

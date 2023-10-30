@@ -1,0 +1,174 @@
+/******************************************************************************
+ * config.h
+ *
+ * A Linux-style configuration list.
+ */
+
+#ifndef __RISCV_CONFIG_H__
+#define __RISCV_CONFIG_H__
+
+# define LONG_BYTEORDER 3
+# define ELFSIZE 64
+
+#define BYTES_PER_LONG (1 << LONG_BYTEORDER)
+#define BITS_PER_LONG (BYTES_PER_LONG << 3)
+#define POINTER_ALIGN BYTES_PER_LONG
+
+#define BITS_PER_LLONG 64
+
+/* acrn_ulong_t is always 64 bits */
+#define BITS_PER_ACRN_ULONG 64
+
+#define CONFIG_PAGING_LEVELS 3
+
+#define CONFIG_RISCV 1
+
+#define CONFIG_RISCV_L1_CACHE_SHIFT 7 /* XXX */
+
+#define CONFIG_IRQ_HAS_MULTIPLE_ACTION 1
+
+#define CONFIG_PAGEALLOC_MAX_ORDER 18
+#define CONFIG_DOMU_MAX_ORDER      9
+#define CONFIG_HWDOM_MAX_ORDER     10
+
+#define OPT_CONSOLE_STR "dtuart"
+
+#ifdef CONFIG_RISCV_64
+#define MAX_VIRT_CPUS 128u
+#else
+#define MAX_VIRT_CPUS 8u
+#endif
+
+#define INVALID_VCPU_ID MAX_VIRT_CPUS
+
+#define __LINUX_RISCV_ARCH__ 7
+#define CONFIG_AEABI
+
+/* Linkage for RISCV */
+#ifdef __ASSEMBLY__
+#define ALIGN .align 2
+#define ENTRY(name)                             \
+  .globl name;                                  \
+  ALIGN;                                        \
+  name:
+#define GLOBAL(name)                            \
+  .globl name;                                  \
+  name:
+#define END(name) \
+  .size name, .-name
+#define ENDPROC(name) \
+  .type name, %function; \
+  END(name)
+#endif
+
+#include <acrn/const.h>
+
+/*
+ * Common RISCV64 layout:
+ *   0  -   2M   Unmapped
+ *   2M -   (2M + CONFIG_TEXT_SIZE)   acrn text, data, bss
+ *   (2M + CONFIG_TEXT_SIZE) -  (2M + CONFIG_TEXT_SIZE + 2M)   Fixmap: special-purpose 4K mapping slots
+ *
+ * RISCV64 layout:
+ *   0  -  CONFIG_TEXT_SIZE + 4M   <COMMON>
+ *
+ * The rest part could map as identical mapping
+ *
+ */
+
+#define ACRN_VIRT_START         _AT(vaddr_t,0x80000000)
+#define ACRN_MSTACK_START       _AT(vaddr_t,0x80080000)
+#define ACRN_MSTACK_SIZE        CONFIG_MSTACK_SIZE
+#define ACRN_STACK_START        _AT(vaddr_t,0x80070000)
+#define ACRN_STACK_SIZE         CONFIG_STACK_SIZE
+#define FIXMAP_ADDR(n)        (_AT(vaddr_t,0x80000000 + CONFIG_TEXT_SIZE) + (n) * PAGE_SIZE)
+
+#ifdef CONFIG_LIVEPATCH
+#define LIVEPATCH_VMAP_START   _AT(vaddr_t,0x80a00000)
+#define LIVEPATCH_VMAP_END     (LIVEPATCH_VMAP_START + MB(2))
+#endif
+
+#define HYPERVISOR_VIRT_START  ACRN_VIRT_START
+
+#ifdef CONFIG_RISCV_32
+
+#define CONFIG_DOMAIN_PAGE 1
+#define CONFIG_SEPARATE_ACRNHEAP 1
+
+#define FRAMETABLE_VIRT_START  _AT(vaddr_t,0x80000000)
+#define FRAMETABLE_SIZE        MB(128-32)
+#define FRAMETABLE_NR          (FRAMETABLE_SIZE / sizeof(*frame_table))
+#define FRAMETABLE_VIRT_END    (FRAMETABLE_VIRT_START + FRAMETABLE_SIZE - 1)
+
+#define VMAP_VIRT_START        _AT(vaddr_t,0x90000000)
+
+#define ACRNHEAP_VIRT_START     _AT(vaddr_t,0xC0000000)
+#define ACRNHEAP_VIRT_END       _AT(vaddr_t,0xefffffff)
+#define DOMHEAP_VIRT_START     _AT(vaddr_t,0xf0000000)
+#define DOMHEAP_VIRT_END       _AT(vaddr_t,0xffffffff)
+
+#define VMAP_VIRT_END    ACRNHEAP_VIRT_START
+
+#define DOMHEAP_ENTRIES        1024  /* 1024 2MB mapping slots */
+
+/* Number of domheap pagetable pages required at the second level (2MB mappings) */
+#define DOMHEAP_SECOND_PAGES ((DOMHEAP_VIRT_END - DOMHEAP_VIRT_START + 1) >> FIRST_SHIFT)
+
+#else /* RISCV_64 */
+
+#define SLOT0_ENTRY_BITS  39
+#define SLOT0(slot) (_AT(vaddr_t,slot) << SLOT0_ENTRY_BITS)
+#define SLOT0_ENTRY_SIZE  SLOT0(1)
+
+#define VMAP_VIRT_START  GB(1)
+#define VMAP_VIRT_END    (VMAP_VIRT_START + GB(1))
+
+#define FRAMETABLE_VIRT_START  GB(32)
+#define FRAMETABLE_SIZE        GB(32)
+#define FRAMETABLE_NR          (FRAMETABLE_SIZE / sizeof(*frame_table))
+#define FRAMETABLE_VIRT_END    (FRAMETABLE_VIRT_START + FRAMETABLE_SIZE - 1)
+
+#define DIRECTMAP_VIRT_START   SLOT0(256)
+#define DIRECTMAP_SIZE         (SLOT0_ENTRY_SIZE * (265-256))
+#define DIRECTMAP_VIRT_END     (DIRECTMAP_VIRT_START + DIRECTMAP_SIZE - 1)
+
+#define ACRNHEAP_VIRT_START     acrnheap_virt_start
+
+#define HYPERVISOR_VIRT_END    DIRECTMAP_VIRT_END
+
+#endif
+
+/* Fixmap slots */
+#define FIXMAP_CONSOLE  0  /* The primary UART */
+#define FIXMAP_MISC     1  /* Ephemeral mappings of hardware */
+#define FIXMAP_ACPI_BEGIN  2  /* Start mappings of ACPI tables */
+#define FIXMAP_ACPI_END    (FIXMAP_ACPI_BEGIN + NUM_FIXMAP_ACPI_PAGES - 1)  /* End mappings of ACPI tables */
+
+#define PAGE_SHIFT              12
+#define PAGE_SIZE           (_AC(1,L) << PAGE_SHIFT)
+#define PAGE_MASK           (~(PAGE_SIZE-1))
+#define PAGE_FLAG_MASK      (~0)
+
+#define NR_hypercalls 64
+
+#define STACK_ORDER 3
+#define STACK_SIZE  (PAGE_SIZE << STACK_ORDER)
+
+#ifndef __ASSEMBLY__
+extern unsigned long acrn_phys_start;
+extern unsigned long acrnheap_phys_end;
+extern unsigned long frametable_virt_end;
+#endif
+
+#define watchdog_disable() ((void)0)
+#define watchdog_enable()  ((void)0)
+
+#endif /* __RISCV_CONFIG_H__ */
+/*
+ * Local variables:
+ * mode: C
+ * c-file-style: "BSD"
+ * c-basic-offset: 4
+ * indent-tabs-mode: nil
+ * End:
+ */

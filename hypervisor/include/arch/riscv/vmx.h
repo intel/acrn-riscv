@@ -1,0 +1,250 @@
+/*
+ * Copyright (C) 2023 Intel Corporation. All rights reserved.
+ *
+ * SPDX-License-Identifier: BSD-3-Clause OR GPL-2.0-or-later
+ */
+
+#ifndef __RISCV_HX_H__
+#define __RISCV_HX_H__
+
+/* 16-bit control fields */
+#define HX_VPID		0x00000000U
+#define HX_POSTED_INTR_VECTOR	0x00000002U
+
+/* 64-bit control fields */
+#define HX_IO_BITMAP_A_FULL   0x00002000U
+#define HX_IO_BITMAP_A_HIGH   0x00002001U
+#define HX_IO_BITMAP_B_FULL   0x00002002U
+#define HX_IO_BITMAP_B_HIGH   0x00002003U
+#define HX_CSR_BITMAP_FULL             0x00002004U
+#define HX_CSR_BITMAP_HIGH             0x00002005U
+#define HX_EXIT_CSR_STORE_ADDR_FULL 0x00002006U
+#define HX_EXIT_CSR_STORE_ADDR_HIGH 0x00002007U
+#define HX_EXIT_CSR_LOAD_ADDR_FULL  0x00002008U
+#define HX_EXIT_CSR_LOAD_ADDR_HIGH  0x00002009U
+#define HX_ENTRY_CSR_LOAD_ADDR_FULL 0x0000200aU
+#define HX_ENTRY_CSR_LOAD_ADDR_HIGH 0x0000200bU
+#define HX_EXECUTIVE_VMCS_PTR_FULL     0x0000200cU
+#define HX_EXECUTIVE_VMCS_PTR_HIGH     0x0000200dU
+#define HX_TSC_OFFSET_FULL    0x00002010U
+#define HX_TSC_OFFSET_HIGH    0x00002011U
+#define HX_VIRTUAL_APIC_PAGE_ADDR_FULL 0x00002012U
+#define HX_VIRTUAL_APIC_PAGE_ADDR_HIGH 0x00002013U
+#define HX_APIC_ACCESS_ADDR_FULL  0x00002014U
+#define HX_APIC_ACCESS_ADDR_HIGH  0x00002015U
+#define HX_PIR_DESC_ADDR_FULL	0x00002016U
+#define HX_PIR_DESC_ADDR_HIGH	0x00002017U
+#define HX_EPT_POINTER_FULL      0x0000201AU
+#define HX_EPT_POINTER_HIGH      0x0000201BU
+#define	HX_EOI_EXIT0_FULL			0x0000201CU
+#define	HX_EOI_EXIT0_HIGH			0x0000201DU
+#define	HX_EOI_EXIT1_FULL			0x0000201EU
+#define	HX_EOI_EXIT1_HIGH			0x0000201FU
+#define	HX_EOI_EXIT2_FULL			0x00002020U
+#define	HX_EOI_EXIT2_HIGH			0x00002021U
+#define	HX_EOI_EXIT3_FULL			0x00002022U
+#define	HX_EOI_EXIT3_HIGH			0x00002023U
+
+#define HX_XSS_EXITING_BITMAP_FULL		0x0000202CU
+#define HX_XSS_EXITING_BITMAP_HIGH		0x0000202DU
+/* 64-bit read-only data fields */
+#define HX_GUEST_PHYSICAL_ADDR_FULL 0x00002400U
+#define HX_GUEST_PHYSICAL_ADDR_HIGH 0x00002401U
+/* 64-bit guest-state fields */
+#define HX_VMS_LINK_PTR_FULL   0x00002800U
+#define HX_VMS_LINK_PTR_HIGH   0x00002801U
+#define HX_GUEST_IA32_DEBUGCTL_FULL 0x00002802U
+#define HX_GUEST_IA32_DEBUGCTL_HIGH 0x00002803U
+#define HX_GUEST_IA32_PERF_CTL_FULL    0x00002808U
+#define HX_GUEST_IA32_PERF_CTL_HIGH    0x00002809U
+#define HX_GUEST_PDPTE0_FULL         0x0000280AU
+#define HX_GUEST_PDPTE0_HIGH   0x0000280BU
+#define HX_GUEST_PDPTE1_FULL   0x0000280CU
+#define HX_GUEST_PDPTE1_HIGH   0x0000280DU
+#define HX_GUEST_PDPTE2_FULL   0x0000280EU
+#define HX_GUEST_PDPTE2_HIGH   0x0000280FU
+#define HX_GUEST_PDPTE3_FULL   0x00002810U
+#define HX_GUEST_PDPTE3_HIGH   0x00002811U
+/* 64-bit host-state fields */
+#define HX_HOST_IA32_PAT_FULL          0x00002C00U
+#define HX_HOST_IA32_PAT_HIGH          0x00002C01U
+#define HX_HOST_IA32_EFER_FULL         0x00002C02U
+#define HX_HOST_IA32_EFER_HIGH         0x00002C03U
+#define HX_HOST_IA32_PERF_CTL_FULL     0x00002C04U
+#define HX_HOST_IA32_PERF_CTL_HIGH     0x00002C05U
+/* 32-bit control fields */
+#define HX_PIN_VM_EXEC_CONTROLS  0x00004000U
+#define HX_PROC_VM_EXEC_CONTROLS  0x00004002U
+#define HX_EXCEPTION_BITMAP   0x00004004U
+#define HX_PF_ERROR_CODE_MASK     0x00004006U
+#define HX_PF_ERROR_CODE_MATCH     0x00004008U
+#define HX_CR3_TARGET_COUNT   0x0000400aU
+#define HX_EXIT_CONTROLS    0x0000400cU
+#define HX_EXIT_CSR_STORE_COUNT  0x0000400eU
+#define HX_EXIT_CSR_LOAD_COUNT   0x00004010U
+#define HX_ENTRY_CONTROLS    0x00004012U
+#define HX_ENTRY_CSR_LOAD_COUNT  0x00004014U
+#define HX_ENTRY_INT_INFO_FIELD  0x00004016U
+#define HX_ENTRY_EXCEPTION_ERROR_CODE   0x00004018U
+#define HX_ENTRY_INSTR_LENGTH   0x0000401aU
+/* 32-bit read-only data fields */
+#define HX_INSTR_ERROR     0x00004400U
+#define HX_EXIT_REASON     0x00004402U
+#define HX_EXIT_INT_INFO    0x00004404U
+#define HX_EXIT_INT_ERROR_CODE     0x00004406U
+#define HX_IDT_VEC_INFO_FIELD   0x00004408U
+#define HX_IDT_VEC_ERROR_CODE     0x0000440aU
+#define HX_INSTR_INFO     0x0000440eU
+/* 32-bit guest-state fields */
+#define HX_GUEST_TR_LIMIT    0x0000480eU
+#define HX_GUEST_CS_ATTR    0x00004816U
+#define HX_GUEST_IDTR_LIMIT   0x00004812U
+#define HX_GUEST_TR_ATTR    0x00004822U
+#define HX_GUEST_INTERRUPTIBILITY_INFO 0x00004824U
+#define HX_GUEST_ACTIVITY_STATE  0x00004826U
+#define HX_GUEST_TIMER                 0x0000482EU
+
+/* natural-width read-only data fields */
+#define HX_EXIT_QUALIFICATION   0x00006400U
+#define HX_IO_RCX      0x00006402U
+#define HX_IO_RDI      0x00006406U
+#define HX_GUEST_LINEAR_ADDR   0x0000640aU
+/* natural-width guest-state fields */
+#define HX_GUEST_SATP				0x00000280U
+#define HX_GUEST_IP				0x0000681eU
+#define HX_GUEST_STATUS				0x00006820U
+#define HX_GUEST_PENDING_DEBUG_EXCEPT		0x00006822U
+/* natural-width host-state fields */
+#define HX_HOST_SATP				0x00006c02U
+#define HX_HOST_TR_BASE				0x00006c0aU
+#define HX_HOST_STVAL				0x00006c0eU
+#define HX_HOST_SP				0x00006c10U
+#define HX_HOST_IP				0x00006c12U
+/*
+ * Basic VM exit reasons
+ */
+#define HX_EXIT_INS_MISALIGN			0x00000000U
+#define HX_EXIT_INS_ACCESS			0x00000001U
+#define HX_EXIT_INS_ILLEGAL			0x00000002U
+#define HX_EXIT_BREAKPOINT			0x00000003U
+#define HX_EXIT_LOAD_MISALIGN			0x00000004U
+#define HX_EXIT_LOAD_ACCESS			0x00000005U
+#define HX_EXIT_STORE_MISALIGN			0x00000006U
+#define HX_EXIT_STORE_ACCESS			0x00000007U
+#define HX_EXIT_ECALL_U				0x00000008U
+#define HX_EXIT_ECALL_HS			0x00000009U
+#define HX_EXIT_ECALL_VS			0x0000000AU
+#define HX_EXIT_ECALL_M				0x0000000BU
+#define HX_EXIT_PF_INS				0x0000000CU
+#define HX_EXIT_PF_LOAD				0x0000000DU
+#define HX_EXIT_RESV				0x0000000EU
+#define HX_EXIT_STORE				0x0000000FU
+#define HX_EXIT_REASON_INVLPG			0x0000000EU
+#define HX_EXIT_PF_GUEST_INS			0x00000014U
+#define HX_EXIT_PF_GUEST_LOAD			0x00000015U
+#define HX_EXIT_VIRT_INS			0x00000016U
+#define HX_EXIT_PF_GUEST_STORE			0x00000017U
+
+#define NR_HX_EXIT_REASONS (HX_EXIT_PF_GUEST_STORE + 1)
+
+#define HX_EXIT_IRQ_RSV				0x00000000U
+#define HX_EXIT_IRQ_SSWI			0x00000001U
+#define HX_EXIT_IRQ_VIRT_SSWI			0x00000002U
+#define HX_EXIT_IRQ_MSWI			0x00000003U
+#define HX_EXIT_IRQ_STIMER			0x00000005U
+#define HX_EXIT_IRQ_VIRT_STIMER			0x00000006U
+#define HX_EXIT_IRQ_MTIMER			0x00000007U
+#define HX_EXIT_IRQ_SEXT			0x00000009U
+#define HX_EXIT_IRQ_VSEXT			0x0000000AU
+#define HX_EXIT_IRQ_MEXT			0x0000000BU
+#define HX_EXIT_IRQ_GUEST_SEXT			0x00000022U
+
+#define NR_HX_EXIT_IRQ_REASONS (HX_EXIT_IRQ_GUEST_SEXT + 1)
+
+/* CSR_IA32_HX_EPT_VPID_CAP: EPT and VPID capability bits */
+#define HX_EPT_EXECUTE_ONLY		(1U << 0U)
+#define HX_EPT_PAGE_WALK_4		(1U << 6U)
+#define HX_EPT_PAGE_WALK_5		(1U << 7U)
+#define HX_EPTP_UC			(1U << 8U)
+#define HX_EPTP_WB			(1U << 14U)
+#define HX_EPT_2MB_PAGE		(1U << 16U)
+#define HX_EPT_1GB_PAGE		(1U << 17U)
+#define HX_EPT_INVEPT  		(1U << 20U)
+#define HX_EPT_AD			(1U << 21U)
+#define HX_EPT_INVEPT_SINGLE_CONTEXT	(1U << 25U)
+#define HX_EPT_INVEPT_GLOBAL_CONTEXT	(1U << 26U)
+
+#define HX_VPID_TYPE_INDIVIDUAL_ADDR	0UL
+#define HX_VPID_TYPE_SINGLE_CONTEXT	1UL
+#define HX_VPID_TYPE_ALL_CONTEXT	2UL
+#define HX_VPID_TYPE_SINGLE_NON_GLOBAL	3UL
+
+#define HX_VPID_INVVPID			(1U << 0U) /* (32 - 32) */
+#define HX_VPID_INVVPID_INDIVIDUAL_ADDR	(1U << 8U) /* (40 - 32) */
+#define HX_VPID_INVVPID_SINGLE_CONTEXT 	(1U << 9U) /* (41 - 32) */
+#define HX_VPID_INVVPID_GLOBAL_CONTEXT 	(1U << 10U) /* (42 - 32) */
+#define HX_VPID_INVVPID_SINGLE_NON_GLOBAL	(1U << 11U) /* (43 - 32) */
+
+#define HX_EPT_MT_EPTE_SHIFT		3U
+#define HX_EPTP_PWL_MASK		0x38UL
+#define HX_EPTP_PWL_4  		0x18UL
+#define HX_EPTP_PWL_5  		0x20UL
+#define HX_EPTP_AD_ENABLE_BIT  	(1UL << 6U)
+#define HX_EPTP_MT_MASK		0x7UL
+#define HX_EPTP_MT_WB  		0x6UL
+#define HX_EPTP_MT_UC  		0x0UL
+
+/* HX exit control bits */
+#define HX_EXIT_CTLS_SAVE_DBG         (1U<<2U)
+#define HX_EXIT_CTLS_HOST_ADDR64      (1U<<9U)
+#define HX_EXIT_CTLS_LOAD_PERF        (1U<<12U)
+#define HX_EXIT_CTLS_ACK_IRQ          (1U<<15U)
+#define HX_EXIT_CTLS_SAVE_PAT         (1U<<18U)
+#define HX_EXIT_CTLS_LOAD_PAT         (1U<<19U)
+#define HX_EXIT_CTLS_SAVE_EFER        (1U<<20U)
+#define HX_EXIT_CTLS_LOAD_EFER        (1U<<21U)
+#define HX_EXIT_CTLS_SAVE_PTMR        (1U<<22U)
+
+/* HX entry control bits */
+#define HX_ENTRY_CTLS_LOAD_DBG        (1U<<2U)
+#define HX_ENTRY_CTLS_IA32E_MODE      (1U<<9U)
+#define HX_ENTRY_CTLS_ENTRY_SMM       (1U<<10U)
+#define HX_ENTRY_CTLS_DEACT_DUAL      (1U<<11U)
+#define HX_ENTRY_CTLS_LOAD_PERF       (1U<<13U)
+#define HX_ENTRY_CTLS_LOAD_PAT        (1U<<14U)
+#define HX_ENTRY_CTLS_LOAD_EFER       (1U<<15U)
+
+/* HX entry/exit Interrupt info */
+#define HX_INT_INFO_ERR_CODE_VALID	(1U<<11U)
+#define HX_INT_INFO_VALID		(1U<<31U)
+#define HX_INT_TYPE_MASK		(0x700U)
+#define HX_INT_TYPE_EXT_INT		0U
+#define HX_INT_TYPE_NMI		2U
+#define HX_INT_TYPE_HW_EXP		3U
+#define HX_INT_TYPE_SW_EXP		6U
+
+/* External Interfaces */
+void hx_on(void);
+void hx_off(void);
+
+/**
+ * Read field from VMCS.
+ *
+ * Refer to Chapter 24, Vol. 3 in SDM for the width of VMCS fields.
+ *
+ * @return full contents in IA-32e mode for 64-bit fields.
+ * @return the lower 32-bit outside IA-32e mode for 64-bit fields.
+ * @return full contents for 32-bit fields, with higher 32-bit set to 0.
+ */
+uint16_t exec_vmread16(uint32_t field);
+uint32_t exec_vmread32(uint32_t field);
+uint64_t exec_vmread64(uint32_t field_full);
+#define exec_vmread exec_vmread64
+
+void exec_vmwrite16(uint32_t field, uint16_t value);
+void exec_vmwrite32(uint32_t field, uint32_t value);
+void exec_vmwrite64(uint32_t field_full, uint64_t value);
+#define exec_vmwrite exec_vmwrite64
+
+#define POSTED_INTR_ON  0U
+#endif /* __RISCV_HX_H__ */

@@ -1,0 +1,5 @@
+1. qemu reset pc to 0x1000 that is the bootrom area, to debug it need to set the elf entry addr as 0x1000, and then use gdb to disassembly the qemu bootrom code, which finally helps to find the rom re-jumps to 0x80000000 bootloader addr. Then reset the elf entry addr as 0x800000000 and re-disassembly the bootloader's code with gdb. Finally figure out the start address jumped from bootloader.
+2. gdb: break _start, and then use diassemble to get the rom/bootloader code
+3. use "qemu-system -bios none" to replace such bootloader as opensbi. but be noted that the kernel image can be either pure binary or elf file: e.g. "-kernel hc.bin" or "-kernel hc.elf"
+4. qemu-system key options: "-s" means listen on tcp:localhost:1234, "-S" means stop at reset, "--help" to print the usage
+5. "objcopy XX.elf -O binary XX.bin" to generate pure binary file from .elf file.

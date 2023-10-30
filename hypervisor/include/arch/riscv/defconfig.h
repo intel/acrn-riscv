@@ -1,0 +1,33 @@
+/*
+ *
+ * acrn/riscv 4.14.0-rc Configuration
+ *
+ */
+/********** board specific area *************/
+#define RUN_ON_QEMU
+#define BOARD_FILE "qemu.h"
+/*********************end********************/
+
+#define CONFIG_RISCV 1
+#define CONFIG_HAS_DEVICE_TREE 1
+#define CONFIG_RISCV_64 1
+#define CONFIG_SCHED_NOOP 1
+#define CONFIG_HAS_FAST_MULTIPLY 1
+#define CONFIG_CC_HAS_VISIBILITY_ATTRIBUTE 1
+#define CONFIG_EARLY_PRINTK 1
+#define CONFIG_DEBUG_LOCKS 1
+#define CONFIG_DEBUG 1
+#define CONFIG_TIMER_IRQ 26
+#define CONFIG_SERIAL_BASE 0x10000000
+#define CONFIG_LOG_LEVEL 5
+#define CONFIG_TEXT_SIZE 0x4000000
+#define CONFIG_STACK_SIZE 0x10000
+#define CONFIG_MSTACK_SIZE 0x1000
+#define CONFIG_UPCALL_IRQ 40
+#define CONFIG_UOS_VIRTIO_BLK_IRQ 79
+#define CONFIG_UOS_VIRTIO_NET_IRQ 80
+
+
+#define CONFIG_MAX_VM_NUM 2
+#define CONFIG_GUEST_ADDRESS_SPACE_SIZE  0x100000000
+#define CONFIG_MAX_EMULATED_MMIO_REGIONS 32
