@@ -279,7 +279,7 @@ struct acrn_vcpu *vclint_vcpu(struct acrn_vclint *vclint, uint32_t idx)
 	return &(vclint->vm->hw.vcpu[idx]);
 }
 
-struct acrn_vclint *vcpu_vclint(struct acrn_vcpu *vcpu)
+struct acrn_vclint *vcpu_vclint(const struct acrn_vcpu *vcpu)
 {
 	return &(vcpu->vm->vclint);
 }

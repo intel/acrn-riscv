@@ -185,7 +185,7 @@ static inline void vcpu_retain_ip(struct acrn_vcpu *vcpu)
 	(vcpu)->arch.inst_len = 0U;
 }
 
-extern struct acrn_vclint *vcpu_vclint(struct acrn_vcpu *vcpu);
+extern struct acrn_vclint *vcpu_vclint(const struct acrn_vcpu *vcpu);
 extern uint16_t pcpuid_from_vcpu(const struct acrn_vcpu *vcpu);
 extern void default_idle(__unused struct thread_object *obj);
 extern void vcpu_thread(struct thread_object *obj);
