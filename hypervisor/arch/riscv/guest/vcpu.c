@@ -15,6 +15,7 @@
 #include <asm/guest/vm.h>
 #include <asm/guest/virq.h>
 #include <asm/guest/vmcs.h>
+#include <asm/guest/vcsr.h>
 //#include <mmu.h>
 //#include <schedule.h>
 #include <sprintf.h>
