@@ -45,7 +45,7 @@ void asm_assert(int32_t line, const char *file, const char *txt);
 
 #endif /* HV_DEBUG */
 
-void init_logmsg();
+void init_logmsg(void);
 
 /*
  * @pre the severity > 0
