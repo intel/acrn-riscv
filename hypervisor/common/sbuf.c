@@ -14,6 +14,7 @@
 #include <errno.h>
 #include <asm/cpu.h>
 #include <asm/per_cpu.h>
+#include <common/sbuf.h>
 
 uint32_t sbuf_next_ptr(uint32_t pos_arg,
 		uint32_t span, uint32_t scope)
