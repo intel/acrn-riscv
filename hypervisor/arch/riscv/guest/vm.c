@@ -371,11 +371,9 @@ bool vm_hide_mtrr(const struct acrn_vm *vm)
 /**
  * @pre vm != NULL && vm_config != NULL && vm->vmid < CONFIG_MAX_VM_NUM
  */
-bool read_vmtrr(const struct acrn_vm *vm)
+uint64_t read_vmtrr(const struct acrn_vcpu *vcpu, uint32_t msr)
 {
-	struct acrn_vm_config *vm_config = get_vm_config(vm->vm_id);
-
-	return ((vm_config->guest_flags & GUEST_FLAG_HIDE_MTRR) != 0U);
+	return 0;
 }
 
 /* virtual MTRR MSR write API */
