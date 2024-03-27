@@ -5,6 +5,7 @@
 
 #include <asm/guest/vm.h>
 #include <asm/irq.h>
+#include <asm/guest/instr_emul.h>
 #include <errno.h>
 #include <logmsg.h>
 #include <sbuf.h>
@@ -466,6 +467,7 @@ static void dm_emulate_io_complete(struct acrn_vcpu *vcpu)
 	}
 }
 
+#ifndef CONFIG_RISCV64
 /**
  * @pre width < 8U
  * @pre vcpu != NULL
@@ -491,6 +493,7 @@ static bool pio_default_write(__unused struct acrn_vcpu *vcpu, __unused uint16_t
 {
 	return true; /* ignore write */
 }
+#endif /* CONFIG_RISCV64 */
 
 /**
  * @pre (io_req->reqs.mmio.size == 1U) || (io_req->reqs.mmio.size == 2U) ||
