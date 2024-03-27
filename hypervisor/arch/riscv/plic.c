@@ -119,11 +119,6 @@ static void plic_eoi_irq(struct irq_desc *desc)
 	plic_write32(plic, desc->irq, PLIC_EOIR);
 }
 
-static bool plic_read_pending_state(struct irq_desc *desc)
-{
-	return (plic_read32(plic, PLIC_IPER) & PLIC_IRQ_MASK);
-}
-
 struct acrn_irqchip_ops plic_ops = {
 	.name     		= "sifive-plic",
 	.init			= plic_init,
