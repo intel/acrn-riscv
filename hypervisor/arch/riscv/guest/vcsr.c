@@ -26,20 +26,10 @@
 
 static const uint32_t emulated_guest_csrs[NUM_GUEST_CSRS] = {
 	/*
-	 * CSRs that trusty may touch and need isolation between secure and normal world
-	 * This may include CSR_STAR, CSR_LSTAR, CSR_FMASK,
-	 * CSR_KERNEL_GS_BASE, CSR_SYSENTER_ESP, CSR_SYSENTER_CS, CSR_SYSENTER_EIP
-	 *
-	 * Number of entries: NUM_WORLD_CSRS
-	 */
-	CSR_TSC_ADJUST,
-
-	/*
 	 * CSRs don't need isolation between worlds
 	 * Number of entries: NUM_COMMON_CSRS
 	 */
 	CSR_TSC_DEADLINE,
-	CSR_TIME_STAMP_COUNTER,
 	CSR_APIC_BASE,
 };
 
@@ -108,17 +98,6 @@ static void enable_csr_interception(uint8_t *bitmap, uint32_t csr_arg, uint32_t 
 /**
  * @pre vcpu != NULL
  */
-static void init_csr_area(struct acrn_vcpu *vcpu)
-{
-//	struct acrn_vm_config *cfg = get_vm_config(vcpu->vm->vm_id);
-//	uint16_t vcpu_clos = cfg->clos[vcpu->vcpu_id];
-
-	vcpu->arch.csr_area.count = 0U;
-}
-
-/**
- * @pre vcpu != NULL
- */
 void init_csr_emulation(struct acrn_vcpu *vcpu)
 {
 	uint8_t *csr_bitmap = vcpu->arch.csr_bitmap;
@@ -136,9 +115,6 @@ void init_csr_emulation(struct acrn_vcpu *vcpu)
 	for (i = 0U; i < NUM_UNSUPPORTED_CSRS; i++) {
 		enable_csr_interception(csr_bitmap, unsupported_csrs[i], INTERCEPT_READ_WRITE);
 	}
-
-	/* don't need to intercept rdcsr for these CSRs */
-	enable_csr_interception(csr_bitmap, CSR_TIME_STAMP_COUNTER, INTERCEPT_WRITE);
 
 	/* Setup CSR bitmap - Intel SDM Vol3 24.6.9 */
 	value64 = hva2hpa(vcpu->arch.csr_bitmap);
@@ -166,11 +142,6 @@ int32_t rdcsr_vmexit_handler(struct acrn_vcpu *vcpu)
 	case CSR_TSC_DEADLINE:
 	{
 		v = vclint_get_tsc_deadline_csr(vcpu_vclint(vcpu));
-		break;
-	}
-	case CSR_TSC_ADJUST:
-	{
-		v = vcpu_get_guest_csr(vcpu, CSR_TSC_ADJUST);
 		break;
 	}
 	case CSR_MTRR_CAP:
@@ -207,111 +178,6 @@ int32_t rdcsr_vmexit_handler(struct acrn_vcpu *vcpu)
 	return err;
 }
 
-/*
- * If HX_TSC_OFFSET_FULL is 0, no need to trap the write of TSC_DEADLINE because there is
- * no offset between vTSC and pTSC, in this case, only write to vTSC_ADJUST is trapped.
- */
-static void set_tsc_csr_interception(struct acrn_vcpu *vcpu, bool interception)
-{
-	uint8_t *csr_bitmap = vcpu->arch.csr_bitmap;
-	bool is_intercepted =
-		((csr_bitmap[CSR_TSC_DEADLINE >> 3U] & (1U << (CSR_TSC_DEADLINE & 0x7U))) != 0U);
-
-	if (!interception && is_intercepted) {
-		enable_csr_interception(csr_bitmap, CSR_TSC_DEADLINE, INTERCEPT_DISABLE);
-		enable_csr_interception(csr_bitmap, CSR_TSC_ADJUST, INTERCEPT_WRITE);
-		/* If the timer hasn't expired, sync virtual TSC_DEADLINE to physical TSC_DEADLINE, to make the guest read the same tsc_deadline
-		 * as it writes. This may change when the timer actually trigger.
-		 * If the timer has expired, write 0 to the virtual TSC_DEADLINE.
-		 */
-		if (cpu_csr_read(CSR_TSC_DEADLINE) != 0UL) {
-			cpu_csr_write(CSR_TSC_DEADLINE, vcpu_get_guest_csr(vcpu, CSR_TSC_DEADLINE));
-		} else {
-			vcpu_set_guest_csr(vcpu, CSR_TSC_DEADLINE, 0UL);
-		}
-	} else if (interception && !is_intercepted) {
-		enable_csr_interception(csr_bitmap, CSR_TSC_DEADLINE, INTERCEPT_READ_WRITE);
-		enable_csr_interception(csr_bitmap, CSR_TSC_ADJUST, INTERCEPT_READ_WRITE);
-		/* sync physical TSC_DEADLINE to virtual TSC_DEADLINE */
-		vcpu_set_guest_csr(vcpu, CSR_TSC_DEADLINE, cpu_csr_read(CSR_TSC_DEADLINE));
-	} else {
-		/* Do nothing */
-	}
-}
-
-/*
- * Intel SDM 17.17.3: If an execution of WRCSR to the
- * TIME_STAMP_COUNTER CSR adds (or subtracts) value X from the
- * TSC, the logical processor also adds (or subtracts) value X from
- * the TSC_ADJUST CSR.
- *
- * So, here we should update VMCS.OFFSET and vAdjust accordingly.
- *   - VMCS.OFFSET = vTSC - pTSC
- *   - vAdjust += VMCS.OFFSET's delta
- */
-
-/**
- * @pre vcpu != NULL
- */
-static void set_guest_tsc(struct acrn_vcpu *vcpu, uint64_t guest_tsc)
-{
-	uint64_t tsc_delta, tsc_offset_delta, tsc_adjust;
-
-	tsc_delta = guest_tsc - cpu_ticks();
-
-	/* apply this delta to TSC_ADJUST */
-	tsc_adjust = vcpu_get_guest_csr(vcpu, CSR_TSC_ADJUST);
-	vcpu_set_guest_csr(vcpu, CSR_TSC_ADJUST, tsc_adjust + tsc_offset_delta);
-
-	/* write to VMCS because rdtsc and rdtscp are not intercepted */
-	set_tsc_csr_interception(vcpu, tsc_delta != 0UL);
-}
-
-/*
- * The policy of vART is that software in native can run in VM too. And in native side,
- * the relationship between the ART hardware and TSC is:
- *
- *   pTSC = (pART * M) / N + pAdjust
- *
- * The vART solution is:
- *   - Present the ART capability to guest through CPUID leaf
- *     15H for M/N which identical to the physical values.
- *   - PT devices see the pART (vART = pART).
- *   - Guest expect: vTSC = vART * M / N + vAdjust.
- *   - VMCS.OFFSET = vTSC - pTSC = vAdjust - pAdjust.
- *
- * So to support vART, we should do the following:
- *   1. if vAdjust and vTSC are changed by guest, we should change
- *      VMCS.OFFSET accordingly.
- *   2. Make the assumption that the pAjust is never touched by ACRN.
- */
-
-/*
- * Intel SDM 17.17.3: "If an execution of WRCSR to the TSC_ADJUST
- * CSR adds (or subtracts) value X from that CSR, the logical
- * processor also adds (or subtracts) value X from the TSC."
- *
- * So, here we should update VMCS.OFFSET and vAdjust accordingly.
- *   - VMCS.OFFSET += vAdjust's delta
- *   - vAdjust = new vAdjust set by guest
- */
-
-/**
- * @pre vcpu != NULL
- */
-static void set_guest_tsc_adjust(struct acrn_vcpu *vcpu, uint64_t tsc_adjust)
-{
-	uint64_t tsc_offset, tsc_adjust_delta;
-
-	/* delta of the new and existing TSC_ADJUST */
-	tsc_adjust_delta = tsc_adjust - vcpu_get_guest_csr(vcpu, CSR_TSC_ADJUST);
-
-	/* TSC_ADJUST is supposed to carry the value it's written to */
-	vcpu_set_guest_csr(vcpu, CSR_TSC_ADJUST, tsc_adjust);
-
-	set_tsc_csr_interception(vcpu, (tsc_offset + tsc_adjust_delta ) != 0UL);
-}
-
 void guest_cpuid(struct acrn_vcpu *vcpu, uint32_t *eax, uint32_t *ebx, uint32_t *ecx, uint32_t *edx)
 {
 }
@@ -337,16 +203,6 @@ int32_t wrcsr_vmexit_handler(struct acrn_vcpu *vcpu)
 	case CSR_TSC_DEADLINE:
 	{
 		vclint_set_tsc_deadline_csr(vcpu_vclint(vcpu), 0, v);
-		break;
-	}
-	case CSR_TSC_ADJUST:
-	{
-		set_guest_tsc_adjust(vcpu, v);
-		break;
-	}
-	case CSR_TIME_STAMP_COUNTER:
-	{
-		set_guest_tsc(vcpu, v);
 		break;
 	}
 	default:
