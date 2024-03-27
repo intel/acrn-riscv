@@ -12,6 +12,7 @@
 #include <asm/guest/vcpu.h>
 #include <asm/guest/vmcs.h>
 #include <asm/guest/vm.h>
+#include <asm/guest/virq.h>
 #include <trace.h>
 #include <logmsg.h>
 
@@ -121,6 +122,12 @@ static bool vcpu_do_pending_extint(const struct acrn_vcpu *vcpu)
 	primary = vcpu_from_vid(vm, BSP_CPU_ID);
 	if (vcpu == primary) {
 		//vplic_pending_intr(vm_pic(vcpu->vm), &vector);
+
+		/*
+		 * AndreiW FIXME:
+		 */
+		vector = NR_MAX_VECTOR;
+
 		if (vector <= NR_MAX_VECTOR) {
 			dev_dbg(DBG_LEVEL_INTR, "VPIC: to inject PIC vector %d\n",
 					vector & 0xFFU);

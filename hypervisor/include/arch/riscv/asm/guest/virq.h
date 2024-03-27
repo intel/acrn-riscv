@@ -19,5 +19,6 @@ extern int32_t external_interrupt_vmexit_handler(struct acrn_vcpu *vcpu);
 extern int32_t acrn_handle_pending_request(struct acrn_vcpu *vcpu);
 extern int32_t exception_vmexit_handler(struct acrn_vcpu *vcpu);
 extern int32_t nmi_window_vmexit_handler(struct acrn_vcpu *vcpu);
+void vcpu_inject_intr(struct acrn_vcpu *vcpu, bool guest_irq_enabled, bool injected);
 
 #endif /* __RISCV_VIRQ_H__ */
