@@ -9,6 +9,8 @@
 #include <asm/lib/spinlock.h>
 #include <asm/guest/vcpu.h>
 #include <asm/guest/vm.h>
+#include <asm/guest/vmexit.h>
+#include <asm/guest/virq.h>
 #include <acrn_hv_defs.h>
 #include <hypercall.h>
 #include <trace.h>
@@ -224,15 +226,12 @@ int32_t vmcall_vmexit_handler(struct acrn_vcpu *vcpu)
 
 	hypcall_id = vcpu_get_gpreg(vcpu, CPU_REG_A6);
 	
-	if (hypcall_id == HC_WORLD_SWITCH) {
-//		ret = hcall_world_switch(vcpu);
-	} else if (hypcall_id == HC_INITIALIZE_TRUSTY) {
-		/* hypercall param1 from guest*/
-		uint64_t param1 = vcpu_get_gpreg(vcpu, CPU_REG_A0);
-
-//		ret = hcall_initialize_trusty(vcpu, param1);
-	} else if (hypcall_id == HC_SAVE_RESTORE_SWORLD_CTX) {
-		//ret = hcall_save_restore_sworld_ctx(vcpu);
+	if (hypcall_id == HC_WORLD_SWITCH ||
+	    hypcall_id == HC_INITIALIZE_TRUSTY ||
+	    hypcall_id == HC_SAVE_RESTORE_SWORLD_CTX) {
+		pr_err ("hypcall 0x%lx not yet implemented\n", hypcall_id);
+		 vcpu_inject_ud(vcpu);
+		 ret = -ENODEV;
 	} else if (is_service_vm(vm)) {
 		/* Dispatch the hypercall handler */
 		ret = dispatch_sos_hypercall(vcpu, hypcall_id);
