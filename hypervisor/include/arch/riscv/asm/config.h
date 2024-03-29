@@ -82,17 +82,17 @@
  *
  */
 
-#define ACRN_VIRT_START         _AT(uint64_t,0x80000000)
-#define ACRN_MSTACK_START       _AT(uint64_t,0x80080000)
+#define ACRN_VIRT_START         _AT(uint64_t, 0x80000000)
+#define ACRN_MSTACK_START       _AT(uint64_t, ACRN_VIRT_START + 0x80000)
 #define ACRN_MSTACK_SIZE        CONFIG_MSTACK_SIZE
-#define ACRN_STACK_START        _AT(uint64_t,0x80070000)
+#define ACRN_STACK_START        _AT(uint64_t, ACRN_VIRT_START + 0x70000)
 #define ACRN_STACK_SIZE         CONFIG_STACK_SIZE
-#define ACRN_VSTACK_START       _AT(uint64_t,0x80060000)
+#define ACRN_VSTACK_START       _AT(uint64_t, ACRN_VIRT_START + 0x60000)
 #define ACRN_VSTACK_SIZE        CONFIG_STACK_SIZE
-#define FIXMAP_ADDR(n)        (_AT(uint64_t,0x80000000 + CONFIG_TEXT_SIZE) + (n) * PAGE_SIZE)
+#define FIXMAP_ADDR(n)          (_AT(uint64_t, ACRN_VIRT_START+ CONFIG_TEXT_SIZE) + (n) * PAGE_SIZE)
 
 #ifdef CONFIG_LIVEPATCH
-#define LIVEPATCH_VMAP_START   _AT(uint64_t,0x80a00000)
+#define LIVEPATCH_VMAP_START   _AT(uint64_t, ACRN_VIRT_START + 0xa00000)
 #define LIVEPATCH_VMAP_END     (LIVEPATCH_VMAP_START + MB(2))
 #endif
 
