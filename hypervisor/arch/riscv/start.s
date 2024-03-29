@@ -128,8 +128,6 @@ boot_idle:
 
 	.globl _end_boot
 _end_boot:
-	nop
-	ret
 
 _vkernel_msg:
 	.string "i'm _vkernel\n"

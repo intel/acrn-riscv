@@ -4,8 +4,7 @@
 #undef ENTRY
 #undef ALIGN
 
-/*ENTRY(_start)*/
-ENTRY(_end_boot)
+ENTRY(_start)
 
 PHDRS
 {
@@ -17,7 +16,6 @@ PHDRS
 SECTIONS
 {
   . = ACRN_VIRT_START;
-  _start = .;
   .text : {
         _stext = .;            /* Text section */
        *(.text)
