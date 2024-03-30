@@ -12,7 +12,7 @@
 #include <console.h>
 #include <asm/per_cpu.h>
 #include <asm/vmx.h>
-#ifndef CONFIG_RISCV
+#ifndef CONFIG_RISCV64
 #include <asm/cpuid.h>
 #include <asm/ioapic.h>
 #include <asm/host_pm.h>
@@ -862,7 +862,7 @@ static int32_t shell_list_vcpu(__unused int32_t argc, __unused char **argv)
 	return 0;
 }
 
-#ifndef CONFIG_RISCV
+#ifndef CONFIG_RISCV64
 #define DUMPREG_SP_SIZE	32
 /* the input 'data' must != NULL and indicate a vcpu structure pointer */
 static void dump_vcpu_reg(void *data)
@@ -1298,7 +1298,7 @@ static int32_t shell_loglevel(int32_t argc, char **argv)
 	return 0;
 }
 
-#ifdef CONFIG_RISCV
+#ifdef CONFIG_RISCV64
 static void get_ptdev_info(char *str_arg, size_t str_max)
 {
 	return 0;

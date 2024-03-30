@@ -6,9 +6,7 @@
 #define BOARD_FILE "qemu.h"
 /*********************end********************/
 
-#define CONFIG_RISCV 1
 #define CONFIG_HAS_DEVICE_TREE 1
-#define CONFIG_RISCV_64 1
 #define CONFIG_SCHED_IORR 1
 #define CONFIG_HAS_FAST_MULTIPLY 1
 #define CONFIG_CC_HAS_VISIBILITY_ATTRIBUTE 1

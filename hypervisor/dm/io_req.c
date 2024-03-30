@@ -523,7 +523,7 @@ static int32_t mmio_default_access_handler(struct io_request *io_req,
 
 	return 0;
 }
-#ifdef CONFIG_RISCV
+#ifdef CONFIG_RISCV64
 static inline int32_t
 hv_emulate_pio(struct acrn_vcpu *vcpu, struct io_request *io_req)
 {

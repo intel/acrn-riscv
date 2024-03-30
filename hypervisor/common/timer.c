@@ -7,7 +7,7 @@
 #include <types.h>
 #include <errno.h>
 #include <asm/io.h>
-#ifdef CONFIG_RISCV
+#ifdef CONFIG_RISCV64
 #include <asm/csr.h>
 #else
 #include <asm/msr.h>

@@ -21,10 +21,7 @@
 
 #define CONFIG_PAGING_LEVELS 3
 
-#define CONFIG_RISCV 1
-
 #define CONFIG_RISCV_L1_CACHE_SHIFT 7 /* XXX */
-
 #define CONFIG_IRQ_HAS_MULTIPLE_ACTION 1
 
 #define CONFIG_PAGEALLOC_MAX_ORDER 18
@@ -33,11 +30,7 @@
 
 #define OPT_CONSOLE_STR "dtuart"
 
-#ifdef CONFIG_RISCV_64
 #define MAX_VIRT_CPUS 128u
-#else
-#define MAX_VIRT_CPUS 8u
-#endif
 
 #define INVALID_VCPU_ID MAX_VIRT_CPUS
 
@@ -98,32 +91,6 @@
 
 #define HYPERVISOR_VIRT_START  ACRN_VIRT_START
 
-#ifdef CONFIG_RISCV_32
-
-#define CONFIG_DOMAIN_PAGE 1
-#define CONFIG_SEPARATE_ACRNHEAP 1
-
-#define FRAMETABLE_VIRT_START  _AT(uint64_t,0x80000000)
-#define FRAMETABLE_SIZE        MB(128-32)
-#define FRAMETABLE_NR          (FRAMETABLE_SIZE / sizeof(*frame_table))
-#define FRAMETABLE_VIRT_END    (FRAMETABLE_VIRT_START + FRAMETABLE_SIZE - 1)
-
-#define VMAP_VIRT_START        _AT(uint64_t,0x90000000)
-
-#define ACRNHEAP_VIRT_START     _AT(uint64_t,0xC0000000)
-#define ACRNHEAP_VIRT_END       _AT(uint64_t,0xefffffff)
-#define DOMHEAP_VIRT_START     _AT(uint64_t,0xf0000000)
-#define DOMHEAP_VIRT_END       _AT(uint64_t,0xffffffff)
-
-#define VMAP_VIRT_END    ACRNHEAP_VIRT_START
-
-#define DOMHEAP_ENTRIES        1024  /* 1024 2MB mapping slots */
-
-/* Number of domheap pagetable pages required at the second level (2MB mappings) */
-#define DOMHEAP_SECOND_PAGES ((DOMHEAP_VIRT_END - DOMHEAP_VIRT_START + 1) >> FIRST_SHIFT)
-
-#else /* RISCV_64 */
-
 #define SLOT0_ENTRY_BITS  39
 #define SLOT0(slot) (_AT(uint64_t,slot) << SLOT0_ENTRY_BITS)
 #define SLOT0_ENTRY_SIZE  SLOT0(1)
@@ -143,8 +110,6 @@
 #define ACRNHEAP_VIRT_START     acrnheap_virt_start
 
 #define HYPERVISOR_VIRT_END    DIRECTMAP_VIRT_END
-
-#endif
 
 /* Fixmap slots */
 #define FIXMAP_CONSOLE  0  /* The primary UART */

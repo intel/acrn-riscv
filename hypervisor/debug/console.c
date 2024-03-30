@@ -15,7 +15,7 @@
 #include <acrn_hv_defs.h>
 #include <asm/guest/vm.h>
 #include <console.h>
-#ifndef CONFIG_RISCV
+#ifndef CONFIG_RISCV64
 #include <boot.h>
 #endif
 #include <dbg_cmd.h>
@@ -35,7 +35,7 @@ bool is_using_init_ipi(void)
 	return use_init_ipi;
 }
 
-#ifndef CONFIG_RISCV
+#ifndef CONFIG_RISCV64
 static void parse_hvdbg_cmdline(void)
 {
 	const char *start = NULL;
@@ -139,7 +139,7 @@ static void vuart_console_tx_chars(struct acrn_vuart *vu)
 	}
 }
 
-#ifdef CONFIG_RISCV
+#ifdef CONFIG_RISCV64
 static struct acrn_vuart *vuart_console_active(void)
 {
 	return NULL;

@@ -13,7 +13,7 @@
 #ifndef HYPERCALL_H
 #define HYPERCALL_H
 
-#ifndef CONFIG_RISCV
+#ifndef CONFIG_RISCV64
 bool is_hypercall_from_ring0(void);
 
 /**
@@ -601,7 +601,7 @@ int32_t hcall_create_vcpu(struct acrn_vcpu *vcpu, struct acrn_vm *target_vm, uin
  * @}
  */
 /* End of acrn_hypercall */
-#else /* CONFIG_RISCV */
+#else /* CONFIG_RISCV64 */
 static inline int32_t hcall_service_vm_offline_cpu(struct acrn_vcpu *vcpu, struct acrn_vm *target_vm, uint64_t param1, uint64_t param2)
 {
 	return -1;
@@ -797,6 +797,6 @@ static inline int32_t hcall_create_vcpu(struct acrn_vcpu *vcpu, struct acrn_vm *
 {
 	return -1;
 }
-#endif /* CONFIG_RISCV */
+#endif /* CONFIG_RISCV64 */
 
 #endif /* HYPERCALL_H*/

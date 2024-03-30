@@ -28,7 +28,7 @@
 
 #include <asm/guest/vm.h>
 #include "vpci_priv.h"
-#ifdef CONFIG_RISCV
+#ifdef CONFIG_RISCV64
 #include <asm/guest/s2vm.h>
 #else
 #include <asm/guest/ept.h>
