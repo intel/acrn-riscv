@@ -4,9 +4,7 @@ HV_OBJDIR ?= $(CURDIR)/build
 HV_MODDIR ?= $(HV_OBJDIR)/modules
 HV_FILE := acrn
 
-
 BOOT_MOD = $(HV_MODDIR)/boot_mod.a
-
 
 # initialize the flags we used
 CFLAGS := -D__riscv64__
@@ -17,6 +15,7 @@ ARCH_CFLAGS := -march=rv64gh1p0_zifencei_zbb -mabi=lp64d -mcmodel=medany
 ARCH_ASFLAGS := -march=rv64gh1p0_zifencei_zbb
 ARCH_ARFLAGS :=
 ARCH_LDFLAGS := -mcmodel=medany
+
 
 .PHONY: default
 default: all
@@ -45,7 +44,6 @@ else
 CFLAGS += -static
 endif
 
-
 ifdef STACK_PROTECTOR
 ifeq (true, $(shell [ $(GCC_MAJOR) -gt 4 ] && echo true))
 CFLAGS += -fstack-protector-strong
@@ -72,9 +70,7 @@ endif
 LDFLAGS += -Wl,--gc-sections -nostartfiles  
 LDFLAGS += -Wl,-n,-z,max-page-size=0x1000
 LDFLAGS += -Wl,--no-dynamic-linker
-
 LDFLAGS += -static
-
 
 ARCH_CFLAGS += -DBUILD_ID -fno-strict-aliasing -Wall -Wstrict-prototypes -Wdeclaration-after-statement -Wno-unused-but-set-variable -Wno-unused-local-typedefs -O1 -fno-omit-frame-pointer -fno-builtin -fno-common -Wredundant-decls -Wno-pointer-arith -Wvla -pipe -Wa,--strip-local-absolute -g -mcmodel=medany -fno-stack-protector -fno-exceptions -fno-asynchronous-unwind-tables -Wnested-externs  
 
@@ -85,9 +81,6 @@ ARCH_ASFLAGS += -D__ASSEMBLY__ -DBUILD_ID -fno-strict-aliasing -Wall -Wstrict-pr
 ARCH_ASFLAGS += -DCONFIG_RISCV_64
 ARCH_ASFLAGS += -D__ACRN__
 ARCH_ASFLAGS += -xassembler-with-cpp
-ARCH_ARFLAGS +=
-ARCH_LDFLAGS +=
-
 
 ARCH_LDSCRIPT = ram_link.ld
 ARCH_LDSCRIPT_IN = arch/riscv/ram_link.lds.S
@@ -124,6 +117,14 @@ OBJCOPY ?= riscv64-unknown-linux-gnu-objcopy
 
 
 CFLAGS += -DCONFIG_RETPOLINE
+
+# unit testing framework with builtin fake kernel
+CONFIG_KTEST := 1
+
+ifdef CONFIG_KTEST
+CFLAGS += -DCONFIG_KTEST
+ASFLAGS += -DCONFIG_KTEST
+endif
 
 # platform boot component
 BOOT_S_SRCS += arch/riscv/start.s
@@ -201,6 +202,7 @@ DISTCLEAN_OBJS := $(shell find $(BASEDIR) -name '*.o')
 .PHONY: all
 all: $(HV_OBJDIR)/$(HV_FILE).elf
 
+
 .PHONY: boot-mod 
 
 $(BOOT_MOD): $(BOOT_S_OBJS) $(BOOT_C_OBJS)
@@ -220,6 +222,7 @@ $(HV_OBJDIR)/$(ARCH_LDSCRIPT): $(ARCH_LDSCRIPT_IN)
 .PHONY: clean
 clean:
 	rm -rf $(HV_OBJDIR)
+
 
 .PHONY: distclean
 distclean:
