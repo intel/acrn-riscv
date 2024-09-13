@@ -19,7 +19,6 @@
 
 static int32_t unhandled_vmexit_handler(struct acrn_vcpu *vcpu);
 static int32_t undefined_vmexit_handler(struct acrn_vcpu *vcpu);
-static int32_t pause_vmexit_handler(__unused struct acrn_vcpu *vcpu);
 static int32_t hlt_vmexit_handler(struct acrn_vcpu *vcpu);
 static int32_t pf_load_vmexit_handler(struct acrn_vcpu *vcpu);
 static int32_t pf_store_vmexit_handler(struct acrn_vcpu *vcpu);
@@ -148,12 +147,6 @@ static int32_t unhandled_vmexit_handler(struct acrn_vcpu *vcpu)
 			vcpu_get_gpreg(vcpu, CPU_REG_IP));
 
 	pr_fatal("Exit Reason: 0x%016lx ", vcpu->arch.exit_reason);
-	return 0;
-}
-
-static int32_t pause_vmexit_handler(__unused struct acrn_vcpu *vcpu)
-{
-	yield_current();
 	return 0;
 }
 

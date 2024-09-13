@@ -255,6 +255,8 @@ extern bool is_pi_capable(const struct acrn_vm *vm);
 extern bool has_rt_vm(void);
 extern struct acrn_vm *get_highest_severity_vm(bool runtime);
 extern bool vm_hide_mtrr(const struct acrn_vm *vm);
+uint64_t read_vmtrr(const struct acrn_vcpu *vcpu, uint32_t msr);
+void write_vmtrr(struct acrn_vcpu *vcpu, uint32_t csr, uint64_t value);
 extern void update_vm_vlapic_state(struct acrn_vm *vm);
 extern enum vm_vlapic_mode check_vm_vlapic_mode(const struct acrn_vm *vm);
 extern void get_vm_lock(struct acrn_vm *vm);

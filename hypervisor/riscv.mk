@@ -1,3 +1,5 @@
+CROSS_COMPILE ?= riscv64-unknown-linux-gnu-
+
 #enable stack overflow check
 BASEDIR := $(shell pwd)
 HV_OBJDIR ?= $(CURDIR)/build
@@ -11,8 +13,8 @@ CFLAGS := -D__riscv64__
 ASFLAGS := -D__riscv64__
 LDFLAGS :=
 ARFLAGS :=
-ARCH_CFLAGS := -march=rv64gh1p0_zifencei_zbb -mabi=lp64d -mcmodel=medany
-ARCH_ASFLAGS := -march=rv64gh1p0_zifencei_zbb
+ARCH_CFLAGS := -march=rv64g_zifencei_zbb -mabi=lp64d -mcmodel=medany
+ARCH_ASFLAGS := -march=rv64g_zifencei_zbb
 ARCH_ARFLAGS :=
 ARCH_LDFLAGS := -mcmodel=medany
 
@@ -72,12 +74,12 @@ LDFLAGS += -Wl,-n,-z,max-page-size=0x1000
 LDFLAGS += -Wl,--no-dynamic-linker
 LDFLAGS += -static
 
-ARCH_CFLAGS += -DBUILD_ID -fno-strict-aliasing -Wall -Wstrict-prototypes -Wdeclaration-after-statement -Wno-unused-but-set-variable -Wno-unused-local-typedefs -O1 -fno-omit-frame-pointer -fno-builtin -fno-common -Wredundant-decls -Wno-pointer-arith -Wvla -pipe -Wa,--strip-local-absolute -g -mcmodel=medany -fno-stack-protector -fno-exceptions -fno-asynchronous-unwind-tables -Wnested-externs  
+ARCH_CFLAGS += -DBUILD_ID -fno-strict-aliasing -Werror -Wall -Wstrict-prototypes -Wdeclaration-after-statement -Wno-unused-but-set-variable -Wno-unused-local-typedefs -O1 -fno-omit-frame-pointer -fno-builtin -fno-common -Wredundant-decls -Wno-pointer-arith -Wvla -pipe -Wa,--strip-local-absolute -g -mcmodel=medany -fno-stack-protector -fno-exceptions -fno-asynchronous-unwind-tables -Wnested-externs
 
 ARCH_CFLAGS += -D__ACRN__
 CFLAGS += -std=gnu99
 
-ARCH_ASFLAGS += -D__ASSEMBLY__ -DBUILD_ID -fno-strict-aliasing -Wall -Wstrict-prototypes -Wdeclaration-after-statement -Wno-unused-but-set-variable -Wno-unused-local-typedefs -O1 -fno-omit-frame-pointer  -fno-builtin -fno-common -Wredundant-decls -Wno-pointer-arith -Wvla -pipe  -Wa,--strip-local-absolute -g -mcmodel=medany -fno-stack-protector -fno-exceptions -fno-asynchronous-unwind-tables -Wnested-externs 
+ARCH_ASFLAGS += -D__ASSEMBLY__ -DBUILD_ID -fno-strict-aliasing -Werror -Wall -Wstrict-prototypes -Wdeclaration-after-statement -Wno-unused-but-set-variable -Wno-unused-local-typedefs -O1 -fno-omit-frame-pointer  -fno-builtin -fno-common -Wredundant-decls -Wno-pointer-arith -Wvla -pipe  -Wa,--strip-local-absolute -g -mcmodel=medany -fno-stack-protector -fno-exceptions -fno-asynchronous-unwind-tables -Wnested-externs
 ARCH_ASFLAGS += -DCONFIG_RISCV64
 ARCH_ASFLAGS += -D__ACRN__
 ARCH_ASFLAGS += -xassembler-with-cpp
@@ -98,23 +100,11 @@ INCLUDE_PATH += include/dm/
 INCLUDE_PATH += include/arch/$(ARCH)
 #INCLUDE_PATH += /usr/include
 
-#CC := riscv64-unknown-elf-gcc
-#AS := riscv64-unknown-elf-as
-#AR := riscv64-unknown-elf-ar
-#LD := riscv64-unknown-elf-ld
-#OBJCOPY ?= riscv64-unknown-elf-objcopy
-CC := riscv64-unknown-linux-gnu-gcc
-AS := riscv64-unknown-linux-gnu-as
-AR := riscv64-unknown-linux-gnu-ar
-LD := riscv64-unknown-linux-gnu-ld
-OBJCOPY ?= riscv64-unknown-linux-gnu-objcopy
-#CC := riscv64-linux-gnu-gcc
-#AS := riscv64-linux-gnu-as
-#AR := riscv64-linux-gnu-ar
-#LD := riscv64-linux-gnu-ld
-#OBJCOPY ?= riscv64-linux-gnu-objcopy
-
-
+CC := $(CROSS_COMPILE)gcc
+AS := $(CROSS_COMPILE)as
+AR := $(CROSS_COMPILE)ar
+LD := $(CROSS_COMPILE)ld
+OBJCOPY ?= $(CROSS_COMPILE)objcopy
 
 CFLAGS += -DCONFIG_RETPOLINE
 

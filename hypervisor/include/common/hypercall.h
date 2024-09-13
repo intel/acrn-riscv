@@ -692,16 +692,6 @@ static inline int32_t hcall_assign_mmiodev(struct acrn_vcpu *vcpu, struct acrn_v
 	return -1;
 }
 
-static int32_t hcall_deassign_mmiodev(struct acrn_vcpu *vcpu, struct acrn_vm *target_vm, uint64_t param1, uint64_t param2)
-{
-	return -1;
-}
-
-static int32_t hcall_add_vdev(struct acrn_vcpu *vcpu, struct acrn_vm *target_vm, uint64_t param1, uint64_t param2)
-{
-	return -1;
-}
-
 static inline int32_t hcall_remove_vdev(struct acrn_vcpu *vcpu, struct acrn_vm *target_vm, uint64_t param1, uint64_t param2)
 {
 	return -1;

@@ -360,6 +360,8 @@ static void handle_updown_key(enum function_key key_value)
 	}
 
 	if (strcmp(p_shell->buffered_line[current_select], p_shell->buffered_line[p_shell->input_line_active]) != 0) {
+		size_t len;
+
 		/* reset cursor pos and clear current input line first, then output selected cmd */
 		if (p_shell->cursor_offset < p_shell->input_line_len) {
 			shell_puts(p_shell->buffered_line[p_shell->input_line_active] + p_shell->cursor_offset);
@@ -368,7 +370,7 @@ static void handle_updown_key(enum function_key key_value)
 		clear_input_line(p_shell->input_line_len);
 		shell_puts(p_shell->buffered_line[current_select]);
 
-		size_t len = strnlen_s(p_shell->buffered_line[current_select], SHELL_CMD_MAX_LEN);
+		len = strnlen_s(p_shell->buffered_line[current_select], SHELL_CMD_MAX_LEN);
 
 		memcpy_s(p_shell->buffered_line[p_shell->input_line_active], SHELL_CMD_MAX_LEN,
 			p_shell->buffered_line[current_select], len + 1);
@@ -1218,6 +1220,7 @@ static int32_t shell_show_cpu_int(__unused int32_t argc, __unused char **argv)
 	return 0;
 }
 
+#ifndef CONFIG_RISCV64
 static void get_entry_info(const struct ptirq_remapping_info *entry, char *type,
 		uint32_t *irq, uint32_t *vector, uint64_t *dest, bool *lvl_tm,
 		uint32_t *pgsi, uint32_t *vgsi, union pci_bdf *bdf, union pci_bdf *vbdf)
@@ -1270,6 +1273,7 @@ static void get_entry_info(const struct ptirq_remapping_info *entry, char *type,
 		vbdf->value = 0U;
 	}
 }
+#endif /* CONFIG_RISCV64 */
 
 static int32_t shell_loglevel(int32_t argc, char **argv)
 {
@@ -1299,23 +1303,11 @@ static int32_t shell_loglevel(int32_t argc, char **argv)
 }
 
 #ifdef CONFIG_RISCV64
-static void get_ptdev_info(char *str_arg, size_t str_max)
-{
-	return 0;
-}
 static int32_t shell_show_ptdev_info(__unused int32_t argc, __unused char **argv)
 {
 	return 0;
 }
-static void get_vioapic_info(char *str_arg, size_t str_max, uint16_t vmid)
-{
-	return 0;
-}
 static int32_t shell_show_vioapic_info(int32_t argc, char **argv)
-{
-	return 0;
-}
-static int32_t get_ioapic_info(char *str_arg, size_t str_max_len)
 {
 	return 0;
 }

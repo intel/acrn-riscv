@@ -146,6 +146,14 @@ static int32_t local_gva2gpa_common(struct acrn_vcpu *vcpu, const struct page_wa
 	return ret;
 }
 
+/*
+ * AndreiW FIXME: Bogus, just unwedge the build.
+ */
+static inline uint64_t get_pae_pdpt_addr(uint64_t cr3)
+{
+        return (cr3 & 0xFFFFFFE0UL);
+}
+
 static int32_t local_gva2gpa_pae(struct acrn_vcpu *vcpu, struct page_walk_info *pw_info,
 	uint64_t gva, uint64_t *gpa, uint32_t *err_code)
 {

@@ -8,7 +8,6 @@
 #define BOARD_INFO_H
 
 #define MAX_HIDDEN_PDEVS_NUM          0U
-#define MAX_PCPU_NUM                  4U
 #define MAX_VMSIX_ON_MSI_PDEVS_NUM    0U
 #define MAXIMUM_PA_WIDTH              40U
 #define MMIO32_START                  0X80000000UL

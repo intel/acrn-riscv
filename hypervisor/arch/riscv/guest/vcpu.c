@@ -15,6 +15,7 @@
 #include <asm/guest/vm.h>
 #include <asm/guest/virq.h>
 #include <asm/guest/vmcs.h>
+#include <asm/guest/vcsr.h>
 //#include <mmu.h>
 //#include <schedule.h>
 #include <sprintf.h>
@@ -278,7 +279,7 @@ struct acrn_vcpu *vclint_vcpu(struct acrn_vclint *vclint, uint32_t idx)
 	return &(vclint->vm->hw.vcpu[idx]);
 }
 
-struct acrn_vclint *vcpu_vclint(struct acrn_vcpu *vcpu)
+struct acrn_vclint *vcpu_vclint(const struct acrn_vcpu *vcpu)
 {
 	return &(vcpu->vm->vclint);
 }

@@ -12,6 +12,7 @@
 #include <npk_log.h>
 #include <logmsg.h>
 #include <ticks.h>
+#include <common/sbuf.h>
 
 /* buf size should be identical to the size in hvlog option, which is
  * transfered to Service VM:
