@@ -1,4 +1,0 @@
-graft data
-graft schema
-graft launch_config
-include configurator/build/assets/scenario.json
