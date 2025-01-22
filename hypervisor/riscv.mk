@@ -1,4 +1,4 @@
-CROSS_COMPILE ?= riscv64-unknown-linux-gnu-
+CROSS_COMPILE ?= $(HOME)/.riscv_gnu_toolchain/gcc-riscv64-unknown-linux-gnu/bin/riscv64-unknown-linux-gnu-
 
 #enable stack overflow check
 BASEDIR := $(shell pwd)
