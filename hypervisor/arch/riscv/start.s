@@ -26,7 +26,7 @@ _start:
 	sd a2, 0(t0)
 #ifdef RUN_ON_QEMU
 	csrr t0, menvcfg
-	li t1, 0x8000000000000000
+	li t1, 0xa0000000000000f0
 	or t0, t0, t1
 	csrw menvcfg, t1
 #endif
