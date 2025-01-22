@@ -53,6 +53,12 @@ enum sbi_id {
 #define SBI_TYPE_RFENCE_SFNECE_VMA		0x1
 #define SBI_TYPE_RFENCE_SFNECE_VMA_ASID		0x2
 
+/* SBI function IDs for RFENCE extension*/
+#define SBI_TYPE_HSM_HART_START			0x0
+#define SBI_TYPE_HSM_HART_STOP			0x1
+#define SBI_TYPE_HSM_HART_GET_STATUS		0x2
+#define SBI_EXT_HSM_HART_SUSPEND		0x3
+
 /* SBI return error codes */
 #define SBI_SUCCESS				0
 #define SBI_EFAILURE				-1
