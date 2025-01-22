@@ -161,7 +161,9 @@ static void sbi_rcall_sfence_vma(struct sbi_rfence_call *rcall)
 	uint64_t size = rcall->size;
 	uint64_t i;
 
-	if ((base == 0 && size == 0) || (size == SBI_RFENCE_FLUSH_ALL)) {
+	if ((base == 0 && size == 0) || (size == SBI_RFENCE_FLUSH_ALL) ||
+		size > 0x1000)
+	{
 		flush_guest_tlb_local();
 		return;
 	}
