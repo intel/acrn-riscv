@@ -530,7 +530,10 @@ int create_vcpu(struct acrn_vm *vm, uint16_t vcpu_id)
 		vcpu_set_state(vcpu, VCPU_INIT);
 
 		vcpu_set_rip(vcpu, vm->sw.kernel_info.entry);
-		vcpu_set_gpreg(vcpu, CPU_REG_A0, vcpu->vcpu_id);
+		if (is_service_vm(vcpu->vm))
+			vcpu_set_gpreg(vcpu, CPU_REG_A0, vcpu->pcpu_id);
+		else
+			vcpu_set_gpreg(vcpu, CPU_REG_A0, vcpu->vcpu_id);
 		vcpu_set_gpreg(vcpu, CPU_REG_A1, vm->sw.dtb_info.dtb_addr);
 
 		(void)memset((void *)&vcpu->req, 0U, sizeof(struct io_request));

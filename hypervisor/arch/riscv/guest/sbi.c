@@ -106,17 +106,35 @@ static void sbi_timer_handler(struct acrn_vcpu *vcpu, struct cpu_regs *regs)
 	return;
 }
 
+static bool is_valid_cpu(struct acrn_vm *vm, int cpu)
+{
+	if (is_service_vm(vm))
+		return cpu < get_pcpu_nums();
+	else
+		return cpu < vm->hw.created_vcpus;
+}
+
 static void send_vipi_mask(struct acrn_vcpu *vcpu, uint64_t mask, uint64_t base)
 {
 	uint16_t offset;
 
 	offset = ffs64(mask);
 
-	while ((offset + base) < vcpu->vm->hw.created_vcpus) {
-		struct acrn_vcpu *t = &vcpu->vm->hw.vcpu[base + offset];
-		struct acrn_vclint *vclint = vcpu_vclint(t);
+	while (is_valid_cpu(vcpu->vm, offset + base)) {
+		struct acrn_vclint *vclint = vcpu_vclint(vcpu);
+		int t = offset + base;
 
 		clear_bit(offset, &mask);
+		if (is_service_vm(vcpu->vm)) {
+			t = -1;
+			for (int i = 0; i < vcpu->vm->hw.created_vcpus; i++) {
+				if (vcpu->vm->hw.vcpu[i].pcpu_id == offset + base) {
+					t = i;
+					break;
+				}
+			}
+			ASSERT(t != -1);
+		}
 		vclint_send_ipi(vclint, base + offset);
 		offset = ffs64(mask);
 	}
@@ -213,11 +231,12 @@ static void sbi_rfence_handler(struct acrn_vcpu *vcpu, struct cpu_regs *regs)
 	if (func == NULL)
 		return;
 	offset = ffs64(mask);
-	while ((offset + base) < vcpu->vm->hw.created_vcpus) {
+	while (is_valid_cpu(vcpu->vm, offset + base)) {
 		uint16_t t = offset + base;
 
 		clear_bit(offset, &mask);
-		t = vcpu->vm->hw.vcpu[t].pcpu_id;
+		if (!is_service_vm(vcpu->vm))
+			t = vcpu->vm->hw.vcpu[t].pcpu_id;
 		set_bit(t, &rcall_mask);
 		offset = ffs64(mask);
 	}
