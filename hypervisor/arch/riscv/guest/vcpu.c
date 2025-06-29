@@ -392,8 +392,7 @@ void kick_vcpu(struct acrn_vcpu *vcpu)
 {
 	uint16_t pcpu_id = pcpuid_from_vcpu(vcpu);
 
-	if ((get_pcpu_id() != pcpu_id) &&
-		(per_cpu(vcpu_run, pcpu_id) == vcpu))
+	if (per_cpu(vcpu_run, pcpu_id) == vcpu)
 	{
 		send_single_swi(pcpu_id, NOTIFY_VCPU_SWI);
 	}
