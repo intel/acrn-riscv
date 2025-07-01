@@ -18,6 +18,7 @@ enum sbi_id {
 	SBI_ID_HSM = 0x48534D,
 	SBI_ID_SRST = 0x53525354,
 	SBI_ID_PMU = 0x504D55,
+	SBI_ID_MPXY = 0x4D505859,
 
 	/* Experimentals extensions must lie within this range */
 	SBI_EXPERIMENTAL_START = 0x08000000,
@@ -53,6 +54,16 @@ enum sbi_id {
 #define SBI_TYPE_RFENCE_SFNECE_VMA		0x1
 #define SBI_TYPE_RFENCE_SFNECE_VMA_ASID		0x2
 
+/* SBI function IDs for MPXY extension*/
+#define SBI_TYPE_MPXY_GET_SHM_SIZE		0x0
+#define SBI_TYPE_MPXY_SET_SHM			0x1
+#define SBI_TYPE_MPXY_GET_CHANNEL_IDS		0x2
+#define SBI_TYPE_MPXY_READ_ATTRS		0x3
+#define SBI_TYPE_MPXY_WRITE_ATTRS		0x4
+#define SBI_TYPE_MPXY_SEND_MSG_WITH_RESP	0x5
+#define SBI_TYPE_MPXY_SEND_MSG_WITHOUT_RESP	0x6
+#define SBI_TYPE_MPXY_GET_NOTFICATION_EVENTS	0x7
+
 /* SBI return error codes */
 #define SBI_SUCCESS				0
 #define SBI_EFAILURE				-1
@@ -74,6 +85,7 @@ enum sbi_type {
 	SBI_TYPE_HSM,
 	SBI_TYPE_SRST,
 	SBI_TYPE_PMU,
+	SBI_TYPE_MPXY,
 	SBI_MAX_TYPES,
 };
 

@@ -132,6 +132,11 @@ struct acrn_vcpu_arch {
 	uint64_t eoi_exit_bitmap[EOI_EXIT_BITMAP_SIZE >> 6U];
 } __aligned(8);
 
+struct sbi_mpxy_shm {
+	uint64_t *base;
+	uint64_t size;
+};
+
 struct acrn_vcpu {
 	uint64_t host_sp;
 	/* Architecture specific definitions for this VCPU */
@@ -148,6 +153,7 @@ struct acrn_vcpu {
 
 	//struct instr_emul_ctxt inst_ctxt;
 	struct io_request req; /* used by io/ept emulation */
+	struct sbi_mpxy_shm mpxy; /* used by tee communication */
 
 	uint64_t reg_cached;
 	uint64_t reg_updated;

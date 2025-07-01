@@ -193,6 +193,7 @@ BOOT_C_SRCS += arch/riscv/guest/vmexit.c
 BOOT_C_SRCS += arch/riscv/guest/vmcall.c
 BOOT_C_SRCS += arch/riscv/guest/guest_memory.c
 BOOT_C_SRCS += arch/riscv/guest/instr_emul.c
+BOOT_C_SRCS += arch/riscv/guest/tee.c
 
 BOOT_C_SRCS += release/profiling.c
 BOOT_C_SRCS += release/trace.c
