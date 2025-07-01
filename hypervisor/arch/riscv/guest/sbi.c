@@ -16,6 +16,8 @@
 #include <asm/guest/vm.h>
 #include <asm/guest/vclint.h>
 #include "sbi.h"
+#include "rpmi.h"
+#include "tee.h"
 
 static void sbi_ecall_base_probe(unsigned long id, unsigned long *out_val)
 {
@@ -25,6 +27,7 @@ static void sbi_ecall_base_probe(unsigned long id, unsigned long *out_val)
 	case SBI_ID_IPI:
 	case SBI_ID_RFENCE:
 	case SBI_ID_TIMER:
+	case SBI_ID_MPXY:
 		*out_val = 1;
 		break;
 	default:
@@ -247,6 +250,112 @@ static void sbi_pmu_handler(struct acrn_vcpu *vcpu, struct cpu_regs *regs)
 	return;
 }
 
+static void sbi_mpxy_get_shm_size(struct acrn_vcpu *vcpu, struct cpu_regs *regs)
+{
+	uint64_t *val = &regs->a1;
+	uint64_t *ret = &regs->a0;
+
+	*val = PAGE_SIZE;
+	*ret = SBI_SUCCESS;
+}
+
+static void sbi_mpxy_set_shm(struct acrn_vcpu *vcpu, struct cpu_regs *regs)
+{
+	uint64_t *ret = &regs->a0;
+
+	vcpu->mpxy.base = (uint64_t *)regs->a0;
+	*ret = SBI_SUCCESS;
+}
+
+static void sbi_mpxy_get_channel_ids(struct acrn_vcpu *vcpu, struct cpu_regs *regs)
+{
+	uint64_t *ret = &regs->a0;
+	uint64_t *val = &regs->a1;
+	uint32_t *p = (uint32_t *)vcpu->mpxy.base;
+
+	*val = 0;
+	*p++ = 0;
+	*p++ = 2;
+	*p++ = 0;
+	*p++ = 1;
+
+	*ret = SBI_SUCCESS;
+}
+
+static void sbi_mpxy_read_attrs(struct acrn_vcpu *vcpu, struct cpu_regs *regs)
+{
+	uint64_t *ret = &regs->a0;
+	uint32_t *p = (uint32_t *)vcpu->mpxy.base;
+
+	*p++ = 0;
+	*p++ = 1;
+	*p++ = 1024;
+	*p++ = 100;
+	*p++ = 100;
+	*p++ = 0x8;
+
+	*ret = SBI_SUCCESS;
+}
+
+static void sbi_mpxy_write_attrs(struct acrn_vcpu *vcpu, struct cpu_regs *regs)
+{
+	uint64_t *ret = &regs->a0;
+
+	*ret = SBI_SUCCESS;
+}
+
+static void sbi_mpxy_send_msg_with_resp(struct acrn_vcpu *vcpu, struct cpu_regs *regs)
+{
+	uint64_t channel_id = regs->a0;
+	uint64_t msg_id = regs->a1;
+	uint64_t *ret = &regs->a0;
+
+	if (channel_id == 0 || channel_id == 1) {
+		tee_switch(vcpu);
+	} else if ((channel_id & 0x10) != 0 && msg_id == RPMI_REQFWD_RETRI_MESG) {
+		tee_switch(vcpu);
+	} else if ((channel_id & 0x10) != 0 && msg_id == RPMI_REQFWD_COMPL_MESG) {
+		struct rpmi_reqfwd_request *p = (struct rpmi_reqfwd_request *)vcpu->mpxy.base;
+		tee_answer_ree(vcpu);
+		p->compl_status = SBI_SUCCESS;
+		p->compl_num = 0x1;
+	}
+
+	*ret = SBI_SUCCESS;
+}
+
+static void sbi_mpxy_handler(struct acrn_vcpu *vcpu, struct cpu_regs *regs)
+{
+	uint64_t *ret = &regs->a0;
+	uint64_t funcid = regs->a6;
+
+	switch (funcid) {
+	case SBI_TYPE_MPXY_GET_SHM_SIZE:
+		sbi_mpxy_get_shm_size(vcpu, regs);
+		break;
+	case SBI_TYPE_MPXY_SET_SHM:
+		sbi_mpxy_set_shm(vcpu, regs);
+		break;
+	case SBI_TYPE_MPXY_GET_CHANNEL_IDS:
+		sbi_mpxy_get_channel_ids(vcpu, regs);
+		break;
+	case SBI_TYPE_MPXY_READ_ATTRS:
+		sbi_mpxy_read_attrs(vcpu, regs);
+		break;
+	case SBI_TYPE_MPXY_WRITE_ATTRS:
+		sbi_mpxy_write_attrs(vcpu, regs);
+		break;
+	case SBI_TYPE_MPXY_SEND_MSG_WITH_RESP:
+		sbi_mpxy_send_msg_with_resp(vcpu, regs);
+		break;
+	default:
+		*ret = SBI_ENOTSUPP;
+		break;
+	}
+
+	return;
+}
+
 static void sbi_undefined_handler(struct acrn_vcpu *vcpu, struct cpu_regs *regs)
 {
 	regs->a0 = SBI_ENOTSUPP;
@@ -276,6 +385,9 @@ static const struct sbi_ecall_dispatch sbi_dispatch_table[NR_HX_EXIT_REASONS] = 
 	[SBI_TYPE_PMU] = {
 		.ext_id = SBI_ID_PMU,
 		.handler = sbi_pmu_handler},
+	[SBI_TYPE_MPXY] = {
+		.ext_id = SBI_ID_MPXY,
+		.handler = sbi_mpxy_handler},
 	[SBI_MAX_TYPES] = {
 		.ext_id = SBI_VENDOR_START,
 		.handler = sbi_undefined_handler},

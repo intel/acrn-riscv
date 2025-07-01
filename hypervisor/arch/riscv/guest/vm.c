@@ -29,6 +29,8 @@ struct acrn_vm_config vm_configs[CONFIG_MAX_VM_NUM] = {
 		.load_order = SERVICE_VM,
 		.severity = SEVERITY_SERVICE_VM,
 		.name = "RISC-V ACRN SOS",
+		.guest_flags = GUEST_FLAG_REE,
+		.companion_vm_id = 1,
 		.vuart[0] =
                 {
 			.type = VUART_MMIO,
@@ -40,6 +42,8 @@ struct acrn_vm_config vm_configs[CONFIG_MAX_VM_NUM] = {
 		.load_order = SERVICE_VM,
 		.severity = SEVERITY_STANDARD_VM,
 		.name = "RISC-V ACRN UOS",
+		.guest_flags = GUEST_FLAG_TEE,
+		.companion_vm_id = 0,
 		.vuart[0] =
                 {
 			.type = VUART_MMIO,
