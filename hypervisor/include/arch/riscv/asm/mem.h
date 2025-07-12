@@ -37,7 +37,15 @@ static inline uint64_t hva2hpa(const void *va)
 
 #ifndef CONFIG_MACRN
 extern int init_secondary_pagetables(int cpu);
-extern void switch_satp(uint64_t satp);
+static inline void switch_satp(uint64_t satp)
+{
+       asm volatile (
+		"csrw satp, %0\n\t" \
+		"sfence.vma"
+		:: "r"(satp)
+		: "memory"
+       );
+}
 #endif
 extern void setup_mem(unsigned long boot_phys_offset);
 
