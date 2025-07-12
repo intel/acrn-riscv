@@ -37,6 +37,38 @@ static void sbi_ecall_base_probe(unsigned long id, unsigned long *out_val)
 	return;
 }
 
+#ifdef CONFIG_MACRN
+static inline uint64_t get_mvendorid(void)
+{
+	return cpu_csr_read(mvendorid);
+}
+
+static inline uint64_t get_marchid(void)
+{
+	return cpu_csr_read(mvendorid);
+}
+
+static inline uint64_t get_mimpid(void)
+{
+	return cpu_csr_read(mimpid);
+}
+#else
+static inline uint64_t get_mvendorid(void)
+{
+	return 0;
+}
+
+static inline uint64_t get_marchid(void)
+{
+	return 0;
+}
+
+static inline uint64_t get_mimpid(void)
+{
+	return 0;
+}
+#endif
+
 static void sbi_base_handler(struct acrn_vcpu *vcpu, struct cpu_regs *regs)
 {
 	unsigned long *ret = &regs->a0;
@@ -57,13 +89,13 @@ static void sbi_base_handler(struct acrn_vcpu *vcpu, struct cpu_regs *regs)
 		*out_val = *out_val | SBI_ACRN_VERSION_MINOR;
 		break;
 	case SBI_TYPE_BASE_GET_MVENDORID:
-		*out_val = cpu_csr_read(mvendorid);
+		*out_val = get_mvendorid();
 		break;
 	case SBI_TYPE_BASE_GET_MARCHID:
-		*out_val = cpu_csr_read(marchid);
+		*out_val = get_marchid();
 		break;
 	case SBI_TYPE_BASE_GET_MIMPID:
-		*out_val = cpu_csr_read(mimpid);
+		*out_val = get_mimpid();
 		break;
 	case SBI_TYPE_BASE_PROBE_EXT:
 		sbi_ecall_base_probe(regs->a0, out_val);
