@@ -20,8 +20,8 @@ CFLAGS += -DCONFIG_SIFIVE_UNMATCHED
 ASFLAGS += -DCONFIG_SIFIVE_UNMATCHED
 CONFIG_SIFIVE_UART := 1
 else
-ARCH_CFLAGS := -march=rv64g_zifencei_zbb -mabi=lp64d -mcmodel=medany
-ARCH_ASFLAGS := -march=rv64g_zifencei_zbb
+ARCH_CFLAGS := -march=rv64gh_zifencei_zbb -mabi=lp64d -mcmodel=medany
+ARCH_ASFLAGS := -march=rv64gh_zifencei_zbb
 endif
 ARCH_ARFLAGS :=
 ARCH_LDFLAGS := -mcmodel=medany
@@ -117,7 +117,7 @@ OBJCOPY ?= $(CROSS_COMPILE)objcopy
 CFLAGS += -DCONFIG_RETPOLINE
 
 # m-mode hypervisor
-CONFIG_MACRN := 1
+#CONFIG_MACRN := 1
 
 # unit testing framework with builtin fake kernel
 #CONFIG_KTEST := 1
