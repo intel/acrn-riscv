@@ -44,6 +44,7 @@ static void load_guest_state(struct acrn_vcpu *vcpu)
 	cpu_csr_write(vsstatus, ctx->run_ctx.sstatus);
 	cpu_csr_write(vsepc, ctx->run_ctx.sepc);
 	cpu_csr_write(vsip, ctx->run_ctx.sip);
+	cpu_csr_set(hvip, ctx->run_ctx.sip);
 	cpu_csr_write(vsie, ctx->run_ctx.sie);
 	cpu_csr_write(vstvec, ctx->run_ctx.stvec);
 	cpu_csr_write(vsscratch, ctx->run_ctx.sscratch);
@@ -81,6 +82,9 @@ static void init_host_state(struct acrn_vcpu *vcpu)
 	value64 = 0x2000C0100;
 	cpu_csr_set(sstatus, value64);
 	ctx->run_ctx.cpu_gp_regs.regs.status = value64;
+
+	value64 = 0x444;
+	cpu_csr_write(hideleg, value64);
 
 	value64 = 0xf0bfff;
 	cpu_csr_write(hedeleg, value64);
