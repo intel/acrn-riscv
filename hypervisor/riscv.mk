@@ -160,7 +160,11 @@ BOOT_C_SRCS += arch/riscv/percpu.c
 BOOT_C_SRCS += arch/riscv/smpboot.c
 BOOT_C_SRCS += arch/riscv/timer.c
 BOOT_C_SRCS += arch/riscv/irq.c
+#ifdef CONFIG_MACRN
 BOOT_C_SRCS += arch/riscv/clint.c
+#else
+BOOT_C_SRCS += arch/riscv/sbi.c
+#endif
 BOOT_C_SRCS += arch/riscv/plic.c
 BOOT_C_SRCS += arch/riscv/notify.c
 BOOT_C_SRCS += arch/riscv/boot.c

@@ -83,4 +83,5 @@ struct plic_regs {
         uint32_t claimed[PLIC_NUM_FIELDS];
 } __aligned(PAGE_SIZE);
 
+extern void init_clint_ipi(void);
 #endif /* __RISCV_APICREG_H__ */

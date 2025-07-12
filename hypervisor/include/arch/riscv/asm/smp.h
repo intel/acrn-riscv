@@ -23,9 +23,18 @@ extern void init_secondary(void);
 extern void stop_cpu(void);
 extern void smp_init_cpus(void);
 extern void smp_clear_cpu_maps (void);
-extern void start_pcpus(void);
-extern void send_single_swi(uint16_t pcpu_id, uint64_t vector);
+extern void start_pcpus(uint32_t cpu);
 extern int kick_pcpu(int cpu);
-extern int do_swi(int cpu);
+extern int smp_platform_init(void);
+
+struct smp_ops {
+	int (*kick_cpu)(int cpu);
+	void (*send_single_swi)(uint16_t pcpu_id, uint64_t vector);
+	void (*send_dest_ipi_mask)(uint64_t dest_mask, uint64_t vector);
+	int (*ipi_start_cpu)(int cpu, uint64_t addr, uint64_t arg);
+};
+
+extern void register_smp_ops(struct smp_ops *ops);
+extern struct smp_ops *smp_ops;
 
 #endif /* __RISCV_SMP_H__ */

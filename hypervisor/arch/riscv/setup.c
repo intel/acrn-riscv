@@ -56,8 +56,8 @@ void start_acrn(uint32_t cpu, unsigned long boot_phys_offset,
 	pr_info("console init \r\n");
 
 	smp_clear_cpu_maps();
-	smp_init_cpus();
-	start_pcpus();
+	smp_platform_init();
+	start_pcpus(cpu);
 	pr_info("Brought up %ld CPUs\n", (long)num_online_cpus());
 	smp_call_init();
 

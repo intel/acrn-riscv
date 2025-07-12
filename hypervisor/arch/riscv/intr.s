@@ -68,14 +68,6 @@ init_trap:
 
 	.globl kernel_init
 kernel_init:
-#ifndef CONFIG_MACRN
-	li t0, 0
-	csrw sie, t0
-	li t0, 0xC0000
-	csrw sstatus, t0
-#endif
-	li a0, BSP_CPU_ID
-	li a1, 0
 	call start_acrn
 	sret
 

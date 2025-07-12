@@ -28,12 +28,6 @@ struct acrn_vcpu idle_vcpu[NR_CPUS];
 uint64_t cpu_online_map = 0UL;
 uint64_t cpu_possible_map = 0UL;
 
-struct smp_enable_ops {
-	int (*prepare_cpu)(int);
-};
-
-static struct smp_enable_ops smp_enable_ops[NR_CPUS];
-
 #define MP_INVALID_IDX 0xffffffff
 uint64_t __cpu_logical_map[NR_CPUS] = { [0 ... NR_CPUS-1] = MP_INVALID_IDX};
 #define cpu_logical_map(cpu) __cpu_logical_map[cpu]
@@ -63,24 +57,49 @@ smp_clear_cpu_maps (void)
 	set_bit(0, &cpu_possible_map);
 }
 
-static int __init smp_platform_init(int cpu)
+void start_secondary(uint32_t cpu)
 {
-	smp_enable_ops[cpu].prepare_cpu = do_swi;
-	return 0;
+	struct thread_object *idle = &per_cpu(idle, cpu);
+
+	set_current(idle);
+	set_pcpu_id(cpu);
+
+	/* Now report this CPU is up */
+	set_bit(cpu, &cpu_online_map);
+#ifndef CONFIG_MACRN
+	switch_satp(init_satp);
+	init_trap();
+#else
+	init_mtrap();
+#endif
+	timer_init();
+	if (cpu == 4) {
+		shell_init();
+		console_setup_timer();
+	}
+	init_sched(cpu);
+
+	local_irq_enable();
+	run_idle_thread();
 }
 
-int __init arch_cpu_init(int cpu)
-{
-	return smp_platform_init(cpu);
-}
-
+extern void secondary(void);
 int kick_pcpu(int cpu)
 {
-	if (!smp_enable_ops[cpu].prepare_cpu)
+	if (!smp_ops)
 		return -ENODEV;
 
-	return smp_enable_ops[cpu].prepare_cpu(cpu);
+	return smp_ops->kick_cpu(cpu);
 }
+
+static int start_pcpu(int cpu)
+{
+	if (!smp_ops)
+		return -ENODEV;
+
+	return smp_ops->ipi_start_cpu(cpu, (uint64_t)secondary, 0);
+}
+
 
 /* Bring up a remote CPU */
 int __cpu_up(unsigned int cpu)
@@ -105,8 +124,7 @@ int __cpu_up(unsigned int cpu)
 	smp_up_cpu = cpu_logical_map(cpu);
 	clean_dcache(smp_up_cpu);
 
-	rc = kick_pcpu(cpu);
-
+	rc = start_pcpu(cpu);
 	if ( rc < 0 )
 	{
 		pr_dbg("Failed to bring up CPU%d, rc = %d", cpu, rc);
@@ -134,46 +152,20 @@ int __cpu_up(unsigned int cpu)
 	return 0;
 }
 
-void start_pcpus(void)
+void start_pcpus(uint32_t cpu)
 {
-	for (uint32_t i = BSP_CPU_ID + 1U; i < NR_CPUS; i++) {
-		__cpu_up(i);
+	for (uint32_t i = 0; i < NR_CPUS; i++) {
+		if (i != cpu)
+			__cpu_up(i);
 	}
 }
 
 void __init smp_init_cpus(void)
 {
 	for (int i = BSP_CPU_ID; i < NR_CPUS; i++) {
-		arch_cpu_init(i);
 		set_bit(i, &cpu_possible_map);
 		cpu_logical_map(i) = i;
 	}
-}
-
-void start_secondary(uint32_t cpu)
-{
-	struct thread_object *idle = &per_cpu(idle, cpu);
-
-	set_current(idle);
-	set_pcpu_id(cpu);
-
-	/* Now report this CPU is up */
-	set_bit(cpu, &cpu_online_map);
-#ifndef CONFIG_MACRN
-	switch_satp(init_satp);
-	init_trap();
-#else
-	init_mtrap();
-#endif
-	timer_init();
-	if (cpu == 4) {
-		shell_init();
-		console_setup_timer();
-	}
-	init_sched(cpu);
-
-	local_irq_enable();
-	run_idle_thread();
 }
 
 void stop_cpu(void)

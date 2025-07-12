@@ -22,6 +22,7 @@
 #include <asm/irq.h>
 #include <asm/current.h>
 #include <asm/boot.h>
+#include <asm/smp.h>
 
 /* stack_frame is linked with the sequence of stack operation in arch_switch_to() */
 struct stack_frame {
@@ -394,7 +395,7 @@ void kick_vcpu(struct acrn_vcpu *vcpu)
 
 	if (per_cpu(vcpu_run, pcpu_id) == vcpu)
 	{
-		send_single_swi(pcpu_id, NOTIFY_VCPU_SWI);
+		smp_ops->send_single_swi(pcpu_id, NOTIFY_VCPU_SWI);
 	}
 }
 

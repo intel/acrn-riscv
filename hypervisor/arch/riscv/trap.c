@@ -7,6 +7,11 @@
 #include <asm/cpu.h>
 #include <asm/smp.h>
 #include <asm/irq.h>
+#include <asm/timer.h>
+#include <asm/per_cpu.h>
+#include <asm/notify.h>
+#include <asm/irq.h>
+#include <asm/lib/bits.h>
 #include "uart.h"
 #include "trap.h"
 
@@ -18,11 +23,20 @@ void sexpt_handler(void)
 void sswi_handler(void)
 {
 	int cpu = smp_processor_id();
+#if 0
 	char *s = "sswi_handler: d\n";
 
 	s[14] = cpu + '0';
 	early_printk(s);
-//	asm volatile ("csrwi sip, 0\n\t"::);
+	asm volatile ("csrwi sip, 0\n\t"::);
+#endif
+	if (test_bit(NOTIFY_VCPU_SWI, per_cpu(swi_vector, cpu).type))
+		clear_bit(NOTIFY_VCPU_SWI, &(per_cpu(swi_vector, cpu).type));
+
+	if (test_bit(SMP_FUNC_CALL, per_cpu(swi_vector, cpu).type)) {
+		clear_bit(SMP_FUNC_CALL, &(per_cpu(swi_vector, cpu).type));
+		kick_notification();
+	}
 }
 
 void reset_stimer(void)

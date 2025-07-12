@@ -11,6 +11,7 @@
 
 	.globl _start
 _start:
+#ifdef CONFIG_MACRN
 	csrr a0, mhartid
 
 	li t0, BSP_CPU_ID
@@ -31,20 +32,9 @@ _start:
 	jal init_mstack
 	call reset_mtimer
 	csrw mip, 0x0
-#ifndef CONFIG_MACRN
-	call init_mtrap
-	li t0, 0x0f
-	csrw pmpcfg0, t0
-	li t0, 0xffffffff
-	csrw pmpaddr0, t0
-
-	li t0, 0x9a0
-#else
 	call boot_trap
 	li t0, 0x1900
-#endif
 	csrs mstatus, t0
-
 
 	li t0, 0x222
 	csrs mideleg, t0
@@ -59,42 +49,53 @@ _start:
 	la t0, _boot
 	csrw mepc, t0
 	mret
+#else
+	j _boot
+#endif
 
 	.globl _boot
 _boot:
 #ifndef CONFIG_MACRN
+	li t0, 0
+	csrw sie, t0
+	li t0, 0xC0000
+	csrw sstatus, t0
 	jal init_stack
-#endif
+	li a1, 0
+	call kernel_init
+#else
 	li t0, BSP_CPU_ID
 	bne a0, t0, secondary
 
+	li a1, 0
 	call kernel_init
 1:
 	la ra, 1b
 	ret
+#endif
 
 hart_halt:
 	wfi
 	j  hart_halt
 
+	.globl secondary
 secondary:
 	lw t0, g_cpus
 	addi t0, t0, 1
 	sw t0, g_cpus, t1
 #ifndef CONFIG_MACRN
+	li t0, 0
+	csrw sie, t0
+	li t0, 0xC0000
+	csrw sstatus, t0
+	jal init_stack
 	call boot_trap
-#endif
+#else
 	jal boot_idle
+#endif
 	call start_secondary 
 
-init_stack:
-	li sp, ACRN_STACK_TOP
-	li t0, ACRN_STACK_SIZE
-	mul t0, a0, t0
-	sub sp, sp, t0
-	csrw sscratch, sp
-	ret
-
+#ifdef CONFIG_MACRN
 init_mstack:
 	li sp, ACRN_MSTACK_TOP
 	li t0, ACRN_MSTACK_SIZE
@@ -102,6 +103,15 @@ init_mstack:
 	sub sp, sp, t0
 	csrw mscratch, sp
 	ret
+#else
+init_stack:
+	li sp, ACRN_STACK_TOP
+	li t0, ACRN_STACK_SIZE
+	mul t0, a0, t0
+	sub sp, sp, t0
+	csrw sscratch, sp
+	ret
+#endif
 
 	.globl boot_idle
 boot_idle:

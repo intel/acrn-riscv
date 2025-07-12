@@ -10,21 +10,29 @@
 #include <asm/smp.h>
 #include <asm/per_cpu.h>
 
-/**
- * @pre pcpu_id < 8U
- */
-void init_clint(uint16_t pcpu_id)
+static int do_swi(int cpu)
 {
-	per_cpu(swi_vector, pcpu_id).type = 0;
-	per_cpu(swi_vector, pcpu_id).param = 0;
+	int val = 0x1;
+	uint64_t off = CLINT_SWI_REG;
+
+	off += (uint64_t)cpu * 4;
+	asm volatile (
+		"sw %0, 0(%1)"
+		:: "r"(val), "r"(off)
+		:"memory"
+	);
+	dsb();
+
+	return 0;
 }
 
-void
-send_startup_ipi(uint16_t dest_pcpu_id, uint64_t cpu_startup_start_address)
+static void send_single_swi(uint16_t pcpu_id, uint64_t vector)
 {
+	set_bit(vector, &per_cpu(swi_vector, pcpu_id).type);
+	do_swi(pcpu_id);
 }
 
-void send_dest_ipi_mask(uint64_t dest_mask, uint64_t vector)
+static void send_dest_ipi_mask(uint64_t dest_mask, uint64_t vector)
 {
 	uint16_t pcpu_id;
 	uint64_t mask = dest_mask;
@@ -39,15 +47,18 @@ void send_dest_ipi_mask(uint64_t dest_mask, uint64_t vector)
 	}
 }
 
-void send_single_swi(uint16_t pcpu_id, uint64_t vector)
+static int ipi_start_cpu(int cpu, __unused uint64_t addr, __unused uint64_t arg)
 {
-	unsigned long reg = CLINT_SWI_REG + pcpu_id * 4;
-	int val = 0x1;
+	return do_swi(cpu);
+}
 
-	set_bit(vector, &per_cpu(swi_vector, pcpu_id).type);
-	asm volatile (
-		"sw %1, 0(%0) \n\t"
-		:: "r" (reg), "r" (val) : "memory"
-	);
-	dsb();
+static struct smp_ops clint_smp_ops =
+	{do_swi, send_single_swi, send_dest_ipi_mask, ipi_start_cpu};
+
+/**
+ * @pre pcpu_id < 8U
+ */
+void init_clint_ipi(void)
+{
+	register_smp_ops(&clint_smp_ops);
 }

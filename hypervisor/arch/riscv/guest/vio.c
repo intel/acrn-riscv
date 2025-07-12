@@ -85,6 +85,12 @@ static uint64_t get_gpa(uint64_t *vpn3, uint64_t gva)
 	return gpa;
 }
 #else
+
+static uint64_t get_gpa(uint64_t *vpn3, uint64_t gva)
+{
+	return gva;
+}
+
 uint32_t get_instruction(uint64_t status, uint64_t gva, uint32_t *xlen)
 {
 	return 0;
@@ -102,7 +108,7 @@ int32_t mmio_access_vmexit_handler(struct acrn_vcpu *vcpu)
 	int32_t status = -1;
 	uint64_t exit_qual;
 	uint64_t gva, gpa;
-	uint32_t ins, xlen;
+	uint32_t ins, xlen = 0;
 	struct io_request *io_req = &vcpu->req;
 	struct acrn_mmio_request *mmio_req = &io_req->reqs.mmio_request;
 	struct run_context *ctx =

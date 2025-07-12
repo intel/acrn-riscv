@@ -10,6 +10,7 @@
 #include <debug/logmsg.h>
 #include <asm/per_cpu.h>
 #include <asm/notify.h>
+#include <asm/smp.h>
 #include <asm/current.h>
 #include <asm/cpumask.h>
 #include <asm/lib/spinlock.h>
@@ -68,7 +69,7 @@ void smp_call_function(uint64_t mask, smp_call_func_t func, void *data)
 			smp_call = &per_cpu(smp_call_info, pcpu_id);
 			smp_call->func = func;
 			smp_call->data = data;
-			send_single_swi(pcpu_id, SMP_FUNC_CALL);
+			smp_ops->send_single_swi(pcpu_id, SMP_FUNC_CALL);
 		} else {
 			/* pcpu is not in active, print error */
 			pr_err("pcpu_id %d not in active!", pcpu_id);
