@@ -75,7 +75,7 @@ void setup_virt_paging(void)
 /*
  * Force a synchronous TLB flush.
  */
-static void s2pt_flush_guest(struct acrn_vm *vm)
+void s2pt_flush_guest(struct acrn_vm *vm)
 {
 	unsigned long flags = 0;
 	uint64_t osatp;
@@ -92,7 +92,7 @@ static void s2pt_flush_guest(struct acrn_vm *vm)
 		isb();
 	}
 
-	flush_guest_tlb();
+	flush_guest_tlb_local();
 
 	if (osatp != cpu_csr_read(hgatp))
 	{
