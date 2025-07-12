@@ -41,12 +41,7 @@ void sswi_handler(void)
 
 void reset_stimer(void)
 {
-	asm volatile(
-		"li a0, 1 \n\t" 	\
-		"ecall \n\t"		\
-		:::
-	);
-	return;
+	set_deadline(0xffffffffffffffff);
 }
 
 void stimer_handler(void)

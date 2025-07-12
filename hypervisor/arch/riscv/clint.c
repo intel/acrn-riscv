@@ -8,6 +8,7 @@
 #include <asm/lib/bits.h>
 #include <asm/cpu.h>
 #include <asm/smp.h>
+#include <asm/io.h>
 #include <asm/per_cpu.h>
 
 static int do_swi(int cpu)
@@ -55,10 +56,36 @@ static int ipi_start_cpu(int cpu, __unused uint64_t addr, __unused uint64_t arg)
 static struct smp_ops clint_smp_ops =
 	{do_swi, send_single_swi, send_dest_ipi_mask, ipi_start_cpu};
 
-/**
- * @pre pcpu_id < 8U
- */
+static void clint_preinit_timer(void)
+{
+	for (int i = BSP_CPU_ID; i < NR_CPUS; i++)
+		writeq_relaxed(CLINT_DISABLE_TIMER, (void *)CLINT_MTIMECMP(i));
+}
+
+static uint64_t clint_get_tick(void)
+{
+	return readq_relaxed((void *)CLINT_MTIME);
+}
+
+static int clint_set_deadline(uint64_t deadline)
+{
+	uint16_t cpu = get_pcpu_id();
+
+	writeq_relaxed(deadline, (void *)CLINT_MTIMECMP(cpu));
+	//isb();
+
+	return 0;
+}
+
+static struct timer_ops clint_timer_ops =
+	{clint_preinit_timer, clint_get_tick, clint_set_deadline};
+
 void init_clint_ipi(void)
 {
 	register_smp_ops(&clint_smp_ops);
+}
+
+void init_clint_timer(void)
+{
+	register_timer_ops(&clint_timer_ops);
 }

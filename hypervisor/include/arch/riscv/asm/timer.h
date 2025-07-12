@@ -12,6 +12,15 @@
 #include <list.h>
 #include <timer.h>
 
+struct timer_ops {
+	void (*preinit_timer)(void);
+	uint64_t (*get_tick)(void);
+	int (*set_deadline)(uint64_t deadline);
+};
+
+extern void register_timer_ops(struct timer_ops *ops);
+extern struct timer_ops *timer_ops;
+
 typedef uint64_t cycles_t;
 
 static inline cycles_t get_cycles (void)
@@ -23,9 +32,10 @@ static inline cycles_t get_cycles (void)
 extern uint64_t boot_count;
 
 extern void udelay(uint32_t us);
-extern unsigned long get_tick(void);
+extern uint64_t get_tick(void);
 extern void preinit_timer(void);
-void update_physical_timer(struct per_cpu_timers *cpu_timer);
+extern void update_physical_timer(struct per_cpu_timers *cpu_timer);
+extern int set_deadline(uint64_t deadline);
 
 #define CYCLES_PER_MS	us_to_ticks(1000U)
 

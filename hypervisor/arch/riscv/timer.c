@@ -12,6 +12,13 @@
 #include <debug/logmsg.h>
 #include <asm/system.h>
 #include <asm/io.h>
+#include <lib/errno.h>
+#ifdef CONFIG_MACRN
+#include <asm/apicreg.h>
+#else
+#include <asm/sbi.h>
+#endif
+
 
 unsigned long cpu_khz;  /* CPU clock frequency in kHz. */
 unsigned long boot_count;
@@ -23,14 +30,28 @@ unsigned long boot_count;
 //#define QEMU_CPUFREQ		0x1000000
 #define QEMU_CPUFREQ		10000000
 
+struct timer_ops *timer_ops = NULL;
+
+void register_timer_ops(struct timer_ops *ops)
+{
+	if (!timer_ops)
+		timer_ops = ops;
+}
+
 static unsigned long get_cpu_khz(void)
 {
 	return QEMU_CPUFREQ / 1000;
 }
 
-unsigned long get_tick(void)
+uint64_t get_tick(void)
 {
-	return readq_relaxed((void *)CLINT_MTIME);
+	uint64_t tick;
+
+	asm volatile (
+		"rdtime t0 \n\t"
+		"sw t0, 0(%0) \n\t"
+			::"r"(&tick): "memory", "t0");
+	return tick;
 }
 
 /* Return number of nanoseconds since boot */
@@ -40,9 +61,25 @@ uint64_t get_s_time(void)
 	return ticks_to_us(ticks);
 }
 
-void set_deadline(uint64_t deadline)
+void preinit_timer(void)
 {
-	uint16_t cpu = get_pcpu_id();
+	cpu_khz = get_cpu_khz();
+	boot_count = get_tick();
+	pr_dbg("cpu_khz = %ld boot_count=%ld \r\n", cpu_khz, boot_count);
+
+	if (!timer_ops) {
+#ifdef CONFIG_MACRN
+		init_clint_timer();
+#else
+		init_sbi_timer();
+#endif
+	}
+
+	return timer_ops->preinit_timer();
+}
+
+int set_deadline(uint64_t deadline)
+{
 	uint64_t ticks = get_tick();
 
 	if (deadline < ticks) {
@@ -50,10 +87,10 @@ void set_deadline(uint64_t deadline)
 		deadline = ticks + us_to_ticks(MIN_TIMER_PERIOD_US);
 	}
 
-	writeq_relaxed(deadline, (void *)CLINT_MTIMECMP(cpu));
-	//isb();
-
-	return;
+	if (!timer_ops)
+		return -ENODEV;
+	else
+		return timer_ops->set_deadline(deadline);
 }
 
 void udelay(uint32_t us)
@@ -83,17 +120,6 @@ void update_physical_timer(struct per_cpu_timers *cpu_timer)
 void hv_timer_handler(void)
 {
 	fire_softirq(SOFTIRQ_TIMER);
-}
-
-void preinit_timer()
-{
-	cpu_khz = get_cpu_khz();
-	boot_count = get_tick();
-	pr_dbg("cpu_khz = %ld boot_count=%ld \r\n", cpu_khz, boot_count);
-
-	for (int i = BSP_CPU_ID; i < NR_CPUS; i++) {
-		writeq_relaxed(CLINT_DISABLE_TIMER, (void *)CLINT_MTIMECMP(i));
-	}
 }
 
 /* run in interrupt context */
