@@ -17,6 +17,7 @@
 //#include <cpufeatures.h>
 #include <asm/guest/vcsr.h>
 #include <asm/guest/vmexit.h>
+#include <asm/guest/s2vm.h>
 #include <logmsg.h>
 
 #ifndef CONFIG_MACRN
@@ -83,6 +84,12 @@ static void init_host_state(struct acrn_vcpu *vcpu)
 
 	value64 = 0xf0bfff;
 	cpu_csr_write(hedeleg, value64);
+
+	value64 = 0xc000000000000000;
+	cpu_csr_write(henvcfg, value64);
+
+	value64 = 0x7;
+	cpu_csr_write(hcounteren, value64);
 }
 
 static inline void load_guest_pmp(struct acrn_vcpu *vcpu) {}
