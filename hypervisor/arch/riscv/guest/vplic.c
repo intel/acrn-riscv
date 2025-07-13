@@ -314,17 +314,23 @@ void vcpu_inject_extint(struct acrn_vcpu *vcpu)
 	struct guest_cpu_context *ctx = &vcpu->arch.contexts[vcpu->arch.cur_context];
 	struct acrn_vplic *vplic = vcpu_vplic(vcpu);
 	uint32_t irq;
+#ifdef CONFIG_MACRN
 	uint64_t value = cpu_csr_read(mip);
+#endif
 	uint64_t flags;
 
 	spin_lock_irqsave(&vplic->lock, &flags);
 	irq = vplic_get_deliverable_irq(vplic, vcpu->vcpu_id);
 	if (irq) {
 		ctx->run_ctx.sip |= CLINT_VECTOR_SEI;
+#ifdef CONFIG_MACRN
 		cpu_csr_write(mip, value | CLINT_VECTOR_SEI);
+#endif
 	} else {
 		ctx->run_ctx.sip &= ~CLINT_VECTOR_SEI;
+#ifdef CONFIG_MACRN
 		cpu_csr_write(mip, value & ~CLINT_VECTOR_SEI);
+#endif
 	}
 	spin_unlock_irqrestore(&vplic->lock, flags);
 }

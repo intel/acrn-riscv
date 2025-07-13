@@ -121,7 +121,7 @@ static void sbi_timer_handler(struct acrn_vcpu *vcpu, struct cpu_regs *regs)
 		&vcpu->arch.contexts[vcpu->arch.cur_context].run_ctx;
 	bool sstc = false;
 
-#ifdef RUN_ON_QEMU
+#ifdef CONFIG_MACRN
 	sstc = !!(cpu_csr_read(menvcfg) & 0x8000000000000000);
 #endif
 	if (funcid == SBI_TYPE_TIME_SET_TIMER) {
@@ -130,7 +130,9 @@ static void sbi_timer_handler(struct acrn_vcpu *vcpu, struct cpu_regs *regs)
 			*ret = SBI_SUCCESS;
 		} else {
 			ctx->sip &= ~CLINT_VECTOR_STI;
+#ifdef CONFIG_MACRN
 			cpu_csr_clear(mip, CLINT_VECTOR_STI);
+#endif
 			vclint_write_tmr(vcpu_vclint(vcpu), vcpu->vcpu_id, regs->a0);
 			*ret = SBI_SUCCESS;
 		}
