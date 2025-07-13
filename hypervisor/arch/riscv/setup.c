@@ -33,6 +33,8 @@ void start_acrn(uint32_t cpu, unsigned long boot_phys_offset,
 	init_percpu_areas();
 	set_current(idle);
 	set_pcpu_id(cpu); /* needed early, for smp_processor_id() */
+	smp_clear_cpu_maps();
+	set_bit(cpu, &cpu_online_map);
 	init_logmsg();
 
 	setup_mem(boot_phys_offset);
@@ -57,7 +59,6 @@ void start_acrn(uint32_t cpu, unsigned long boot_phys_offset,
 //	console_setup_timer();
 	pr_info("console init \r\n");
 
-	smp_clear_cpu_maps();
 	smp_platform_init();
 	start_pcpus(cpu);
 	pr_info("Brought up %ld CPUs\n", (long)num_online_cpus());

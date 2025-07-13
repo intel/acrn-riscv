@@ -45,7 +45,7 @@ struct init_info init_data =
 uint64_t smp_up_cpu = MP_INVALID_IDX;
 
 void __init
-smp_clear_cpu_maps (void)
+smp_clear_cpu_maps(void)
 {
 /*
  * On Sophgo, it needs to explictly set the value since the very early
@@ -53,9 +53,6 @@ smp_clear_cpu_maps (void)
  */
 	cpu_online_map = 0UL;
 	cpu_possible_map = 0UL;
-
-	set_bit(0, &cpu_online_map);
-	set_bit(0, &cpu_possible_map);
 }
 
 void start_secondary(uint32_t cpu)
