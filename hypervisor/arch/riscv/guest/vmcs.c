@@ -26,7 +26,7 @@ static void init_guest_state(struct acrn_vcpu *vcpu)
 	struct guest_cpu_context *ctx = &vcpu->arch.contexts[vcpu->arch.cur_context];
 
 	vcpu_set_gpreg(vcpu, OFFSET_REG_A0, vcpu->vcpu_id);
-	cpu_csr_write(vsstatus, 0x2000C0000);
+	cpu_csr_write(vsstatus, ctx->run_ctx.sstatus);
 	cpu_csr_write(vsepc, ctx->run_ctx.sepc);
 	cpu_csr_write(vsip, ctx->run_ctx.sip);
 	cpu_csr_write(vsie, ctx->run_ctx.sie);
@@ -79,7 +79,7 @@ static void init_host_state(struct acrn_vcpu *vcpu)
 	ctx->run_ctx.cpu_gp_regs.regs.hstatus = value64;
 
 	/* must set the SPP in order to enter into guest s-mode */
-	value64 = 0x2000C0100;
+	value64 = 0x2000C2100;
 	cpu_csr_set(sstatus, value64);
 	ctx->run_ctx.cpu_gp_regs.regs.status = value64;
 

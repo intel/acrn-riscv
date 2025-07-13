@@ -59,7 +59,7 @@ init_trap:
 	li t0, 0x222
 	csrw sie, t0
 	li t0, 0xC0022
-	csrw sstatus, t0
+	csrs sstatus, t0
 
 	ld t0, 8(sp)
 	ld ra, 0(sp)

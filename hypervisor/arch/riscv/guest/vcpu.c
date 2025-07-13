@@ -529,6 +529,7 @@ int create_vcpu(struct acrn_vm *vm, uint16_t vcpu_id)
 		/* Populate the return handle */
 		vcpu_set_state(vcpu, VCPU_INIT);
 
+		vcpu_set_status(vcpu, 0x2000C2000);
 		vcpu_set_rip(vcpu, vm->sw.kernel_info.entry);
 		vcpu_set_gpreg(vcpu, CPU_REG_A0, vcpu->vcpu_id);
 		vcpu_set_gpreg(vcpu, CPU_REG_A1, vm->sw.dtb_info.dtb_addr);

@@ -11,6 +11,7 @@
 #include <asm/cache.h>
 #include <asm/cpumask.h>
 #include <asm/mem.h>
+#include <asm/float.h>
 #include <asm/early_printk.h>
 #include <asm/smp.h>
 #include <asm/per_cpu.h>
@@ -42,6 +43,7 @@ void start_acrn(uint32_t cpu, unsigned long boot_phys_offset,
 	init_mtrap();
 #else
 	init_trap();
+	init_float();
 #endif
 	init_interrupt(BSP_CPU_ID);
 	preinit_timer();

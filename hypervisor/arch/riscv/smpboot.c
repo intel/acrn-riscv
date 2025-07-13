@@ -13,6 +13,7 @@
 #include <asm/types.h>
 #include <asm/setup.h>
 #include <asm/smp.h>
+#include <asm/float.h>
 #include <asm/mem.h>
 #include <asm/cache.h>
 #include <asm/pgtable.h>
@@ -69,6 +70,7 @@ void start_secondary(uint32_t cpu)
 #ifndef CONFIG_MACRN
 	switch_satp(init_satp);
 	init_trap();
+	init_float();
 #else
 	init_mtrap();
 #endif

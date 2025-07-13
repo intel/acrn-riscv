@@ -183,6 +183,7 @@ BOOT_C_SRCS += arch/riscv/guest/vpci/vhostbridge.c
 BOOT_C_SRCS += arch/riscv/mem.c
 BOOT_C_SRCS += arch/riscv/pgtable.c
 BOOT_C_SRCS += arch/riscv/pager.c
+BOOT_C_SRCS += arch/riscv/float.c
 
 ifndef CONFIG_MACRN
 BOOT_C_SRCS += arch/riscv/guest/s2vm.c
