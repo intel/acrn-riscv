@@ -98,11 +98,14 @@ static void sbi_preinit_timer(void)
 
 static int sbi_set_deadline(uint64_t deadline)
 {
-	sbi_ret ret;
+	sbi_ret ret = {0, 0};
 
+#ifdef CONFIG_SSTC
+	asm volatile ("csrw stimecmp, %0"::"r"(deadline):);
+#else
 	ret = sbi_ecall(deadline, 0, 0, 0, 0, 0, SBI_TYPE_TIME_SET_TIMER,
 			SBI_ID_TIMER);
-
+#endif
 	return ret.error;
 }
 
