@@ -17,17 +17,6 @@
 #include <trace.h>
 #include <logmsg.h>
 
-static int32_t mswi_vmexit_handler(struct acrn_vcpu *vcpu)
-{
-	return 0;
-}
-
-static int32_t mti_vmexit_handler(struct acrn_vcpu *vcpu)
-{
-	ASSERT(current != 0);
-	return 0;
-}
-
 static int32_t unhandled_vmexit_handler(struct acrn_vcpu *vcpu)
 {
 	pr_fatal("Error: Unhandled VM exit condition from guest at 0x%016lx ",
@@ -101,21 +90,39 @@ static int32_t pf_store_vmexit_handler(struct acrn_vcpu *vcpu)
 
 static int32_t pf_ins_vmexit_handler(struct acrn_vcpu *vcpu)
 {
-	pr_info("%s\n", __func__);
+	struct run_context *ctx =
+		&vcpu->arch.contexts[vcpu->arch.cur_context].run_ctx;
+	struct cpu_regs *regs = &ctx->cpu_gp_regs.regs;
+
+	pr_info("%s: %lx\n", __func__, regs->ip);
 	return 0;
 }
+
+/* VM Dispatch table for Exit condition handling */
+#ifdef CONFIG_MACRN
+static int32_t mswi_vmexit_handler(struct acrn_vcpu *vcpu)
+{
+	return 0;
+}
+
+static int32_t mti_vmexit_handler(struct acrn_vcpu *vcpu)
+{
+	ASSERT(current != 0);
+	return 0;
+}
+
 /* VM Dispatch table for Exit condition handling */
 static const struct vm_exit_dispatch interrupt_dispatch_table[NR_HX_EXIT_IRQ_REASONS] = {
 	[HX_EXIT_IRQ_RSV] = {
 		.handler = undefined_vmexit_handler},
 	[HX_EXIT_IRQ_SSWI] = {
-		.handler = unhandled_vmexit_handler},
+		.handler = undefined_vmexit_handler},
 	[HX_EXIT_IRQ_VIRT_SSWI] = {
 		.handler = undefined_vmexit_handler},
 	[HX_EXIT_IRQ_MSWI] = {
 		.handler = mswi_vmexit_handler},
 	[HX_EXIT_IRQ_STIMER] = {
-		.handler = unhandled_vmexit_handler},
+		.handler = undefined_vmexit_handler},
 	[HX_EXIT_IRQ_VSTIMER] = {
 		.handler = undefined_vmexit_handler},
 	[HX_EXIT_IRQ_MTIMER] = {
@@ -130,8 +137,6 @@ static const struct vm_exit_dispatch interrupt_dispatch_table[NR_HX_EXIT_IRQ_REA
 		.handler = unhandled_vmexit_handler},
 };
 
-/* VM Dispatch table for Exit condition handling */
-#ifdef CONFIG_MACRN
 static const struct vm_exit_dispatch exception_dispatch_table[NR_HX_EXIT_REASONS] = {
 	[HX_EXIT_INS_MISALIGN] = {
 		.handler = exception_vmexit_handler},
@@ -176,7 +181,45 @@ static const struct vm_exit_dispatch exception_dispatch_table[NR_HX_EXIT_REASONS
 	[HX_EXIT_PF_GUEST_STORE] = {
 		.handler = undefined_vmexit_handler},
 };
-#else
+
+#else /* !CONFIG_MACRN */
+static int32_t sswi_vmexit_handler(struct acrn_vcpu *vcpu)
+{
+	return 0;
+}
+
+static int32_t sti_vmexit_handler(struct acrn_vcpu *vcpu)
+{
+	ASSERT(current != 0);
+	return 0;
+}
+
+/* VM Dispatch table for Exit condition handling */
+static const struct vm_exit_dispatch interrupt_dispatch_table[NR_HX_EXIT_IRQ_REASONS] = {
+	[HX_EXIT_IRQ_RSV] = {
+		.handler = undefined_vmexit_handler},
+	[HX_EXIT_IRQ_SSWI] = {
+		.handler = sswi_vmexit_handler},
+	[HX_EXIT_IRQ_VIRT_SSWI] = {
+		.handler = undefined_vmexit_handler},
+	[HX_EXIT_IRQ_MSWI] = {
+		.handler = undefined_vmexit_handler},
+	[HX_EXIT_IRQ_STIMER] = {
+		.handler = sti_vmexit_handler},
+	[HX_EXIT_IRQ_VSTIMER] = {
+		.handler = undefined_vmexit_handler},
+	[HX_EXIT_IRQ_MTIMER] = {
+		.handler = undefined_vmexit_handler},
+	[HX_EXIT_IRQ_SEXT] = {
+		.handler = external_interrupt_vmexit_handler},
+	[HX_EXIT_IRQ_VSEXT] = {
+		.handler = undefined_vmexit_handler},
+	[HX_EXIT_IRQ_MEXT] = {
+		.handler = mexti_vmexit_handler},
+	[HX_EXIT_IRQ_GUEST_SEXT] = {
+		.handler = unhandled_vmexit_handler},
+};
+
 static const struct vm_exit_dispatch exception_dispatch_table[NR_HX_EXIT_REASONS] = {
 	[HX_EXIT_INS_MISALIGN] = {
 		.handler = exception_vmexit_handler},
