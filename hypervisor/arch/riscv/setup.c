@@ -20,6 +20,7 @@
 #include <asm/guest/s2vm.h>
 #include <debug/console.h>
 #include <debug/logmsg.h>
+#include <debug/shell.h>
 
 struct bootinfo bootinfo;
 size_t dcache_line_bytes;
@@ -56,6 +57,10 @@ void start_acrn(uint32_t cpu, unsigned long boot_phys_offset,
 	timer_init();
 	pr_info("init timer\r\n");
 	console_init();
+	if (cpu == 4) {
+		shell_init();
+		console_setup_timer();
+	}
 //	console_setup_timer();
 	pr_info("console init \r\n");
 

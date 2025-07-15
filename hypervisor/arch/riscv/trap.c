@@ -12,6 +12,7 @@
 #include <asm/notify.h>
 #include <asm/irq.h>
 #include <asm/lib/bits.h>
+#include <softirq.h>
 #include "uart.h"
 #include "trap.h"
 
@@ -79,6 +80,8 @@ void sint_handler(int irq)
 		sirq_handler[irq]();
 	else
 		sirq_handler[10]();
+
+	do_softirq();
 }
 
 void vsswi_handler(void)
