@@ -120,11 +120,10 @@ static void __init map_mem(void)
 		BOARD_HV_DEVICE_START, BOARD_HV_DEVICE_SIZE,
 		PAGE_V | PAGE_ATTR_IO,
 		&ppt_mem_ops);
-/*
+
 	mmu_add((uint64_t *)acrn_vpn3, BOARD_HV_RAM_START, BOARD_HV_RAM_START, BOARD_HV_RAM_SIZE,
 		PAGE_V | PAGE_ATTR_PMA | PAGE_U,
 		&ppt_mem_ops);
-*/
 }
 
 static void clear_table(void *table)

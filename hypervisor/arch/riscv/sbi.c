@@ -113,9 +113,7 @@ static uint64_t sbi_get_tick(void)
 {
 	uint64_t tick;
 	asm volatile (
-		"rdtime t0 \n\t"
-		"sw t0, 0(%0) \n\t"
-			::"r"(&tick): "memory", "t0");
+		"rdtime %0":"=r"(tick):: "memory");
 	return tick;
 }
 static struct timer_ops sbi_timer_ops =

@@ -99,8 +99,8 @@ static void kernel_load(struct kernel_info *info)
 	paddr_t paddr = info->kernel_addr;
 	paddr_t len = info->kernel_len;
 #ifndef CONFIG_MACRN
-	void *kernel_hva;
-	int rc;
+//	void *kernel_hva;
+//	int rc;
 #endif
 
 	load_addr = info->mem_start_gpa + info->text_offset;
@@ -109,6 +109,7 @@ static void kernel_load(struct kernel_info *info)
 
 	pr_info("Loading kernel from %lx to %lx - %lx",
 		   paddr, load_addr, load_addr + len);
+/*
 #ifndef CONFIG_MACRN
 	kernel_hva = hpa2hva(paddr);
 
@@ -116,6 +117,7 @@ static void kernel_load(struct kernel_info *info)
 	if ( rc != 0 )
 		pr_err("Unable to copy the kernel in the memory\n");
 #endif
+*/
 }
 
 static int kernel_header_parse(struct kernel_info *info)
@@ -185,6 +187,7 @@ static void init_uos_load(struct acrn_vm *vm)
 	dinfo->dtb_addr = 0;
 #else
 	kinfo->kernel_addr = CONFIG_UOS_MEM_START;
+	kinfo->kernel_len = CONFIG_UOS_MEM_SIZE;
 	dinfo->dtb_addr = CONFIG_UOS_DTB_BASE;
 	kernel_header_parse(kinfo);
 #endif
@@ -216,7 +219,7 @@ static void dtb_load(struct dtb_info *info)
 	void *dtb_hva = hpa2hva(info->dtb_addr);
 	int rc = 0;
 #endif
-
+	return;
 	pr_info("Loading DTB to 0x%llx - 0x%llx\n",
 			info->dtb_start_gpa, info->dtb_start_gpa + info->dtb_size_gpa);
 
@@ -259,23 +262,23 @@ static int map_irq_to_vm(struct acrn_vm *vm, unsigned int irq)
 }
 
 #ifndef CONFIG_MACRN
-static void passthru_devices_to_sos(void)
+static void passthru_devices_to_vm(struct acrn_vm *vm)
 {
 	// Map all the devices to guest 0x8000000 - 0xb000000
-	s2pt_add_mr(sos_vm, sos_vm->arch_vm.s2ptp, SOS_DEVICE_MMIO_START, SOS_DEVICE_MMIO_START,
+	s2pt_add_mr(vm, vm->arch_vm.s2ptp, SOS_DEVICE_MMIO_START, SOS_DEVICE_MMIO_START,
 			SOS_DEVICE_MMIO_SIZE, PAGE_V);
-	s2pt_del_mr(sos_vm, sos_vm->arch_vm.s2ptp, CONFIG_CLINT_BASE, CONFIG_CLINT_SIZE);
+//	s2pt_del_mr(vm, vm->arch_vm.s2ptp, CONFIG_CLINT_BASE, CONFIG_CLINT_SIZE);
+//	s2pt_del_mr(vm, vm->arch_vm.s2ptp, CONFIG_UART_BASE, 0x1000);
+//	s2pt_add_mr(vm, vm->arch_vm.s2ptp, CONFIG_UART_BASE, CONFIG_UART_BASE,
+//			0x1000, PAGE_V);
 
 	for (int irq = 32; irq < 992; irq++) {
-		map_irq_to_vm(sos_vm, irq);
+		map_irq_to_vm(vm, irq);
 	}
 }
 #else
-static void passthru_devices_to_sos(void)
+static void passthru_devices_to_vm(struct acrn_vm *vm)
 {
-	for (int irq = 32; irq < 992; irq++) {
-		map_irq_to_vm(sos_vm, irq);
-	}
 }
 #endif
 
@@ -308,10 +311,13 @@ int create_vm(struct acrn_vm *vm)
 	kernel_load(kinfo);
 	dtb_load(dinfo);
 
+	passthru_devices_to_vm(vm);
+#if 0
 	if (is_service_vm(vm)) {
 		pr_info("passthru devices");
 		passthru_devices_to_sos();
 	}
+#endif
 
 	vclint_init(vm);
 	vplic_init(vm);

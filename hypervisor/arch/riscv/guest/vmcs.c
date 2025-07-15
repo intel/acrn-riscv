@@ -94,6 +94,8 @@ static void init_host_state(struct acrn_vcpu *vcpu)
 
 	value64 = 0x7;
 	cpu_csr_write(hcounteren, value64);
+
+	s2pt_flush_guest(vcpu->vm);
 }
 
 static inline void load_guest_pmp(struct acrn_vcpu *vcpu) {}
