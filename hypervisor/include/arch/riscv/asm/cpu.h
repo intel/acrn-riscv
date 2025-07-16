@@ -71,6 +71,8 @@ enum cpu_reg_name {
 	CPU_REG_TVAL,
 	CPU_REG_CAUSE,
 	CPU_REG_HSTATUS,
+	CPU_REG_HTVAL,
+	CPU_REG_HTINST,
 	CPU_REG_ORIG_A0,
 	/*CPU_REG_LAST*/
 };
@@ -112,6 +114,8 @@ struct cpu_regs {
 	uint64_t tval;
 	uint64_t cause;
 	uint64_t hstatus;
+	uint64_t htval;
+	uint64_t htinst;
 	/* a0 value before the syscall */
 	uint64_t orig_a0;
 };
@@ -151,6 +155,9 @@ struct cpu_regs {
 #define OFFSET_REG_STATUS	offsetof(struct cpu_regs, status)
 #define OFFSET_REG_TVAL		offsetof(struct cpu_regs, tval)
 #define OFFSET_REG_CAUSE	offsetof(struct cpu_regs, cause)
+#define OFFSET_REG_HSTATUS	offsetof(struct cpu_regs, hstatus)
+#define OFFSET_REG_HTVAL	offsetof(struct cpu_regs, htval)
+#define OFFSET_REG_HTINST	offsetof(struct cpu_regs, htinst)
 #define OFFSET_REG_ORIG_A0	offsetof(struct cpu_regs, orig_a0)
 	/*OFFSET_REG_LAST*/
 
@@ -431,6 +438,10 @@ static inline void clac(void)
 	sd t0, REG_CAUSE(sp)
 	csrr t0, hstatus
 	sd t0, REG_HSTATUS(sp)
+	csrr t0, htval
+	sd t0, REG_HTVAL(sp)
+	csrr t0, htinst
+	sd t0, REG_HTINST(sp)
 
 	sd ra, REG_RA(sp)
 	sd gp, REG_GP(sp)
@@ -475,6 +486,10 @@ static inline void clac(void)
 	csrw scause, t0
 	ld t0, REG_HSTATUS(sp)
 	csrw hstatus, t0
+	ld t0, REG_HTVAL(sp)
+	csrw htval, t0
+	ld t0, REG_HTINST(sp)
+	csrw htinst, t0
 
 	ld ra, REG_RA(sp)
 	ld gp, REG_GP(sp)

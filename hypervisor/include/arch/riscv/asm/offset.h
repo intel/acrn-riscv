@@ -44,7 +44,9 @@
 #define REG_TVAL	0x108
 #define REG_CAUSE	0x110
 #define REG_HSTATUS	0x118
-#define REG_ORIG_A0	0x120
+#define REG_HTVAL	0x120
+#define REG_HTINST	0x128
+#define REG_ORIG_A0	0x130
 
 #ifdef CONFIG_MACRN
 #define CSR_TVEC mtvec

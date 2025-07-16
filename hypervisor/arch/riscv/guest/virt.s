@@ -59,21 +59,58 @@ vmx_vmrun:
 	csrw scause, t6
 	ld t6, REG_HSTATUS(a0)
 	csrw hstatus, t6
+	ld t6, REG_HTVAL (a0)
+	csrw htval, t6
+	ld t6, REG_HTINST(a0)
+	csrw htinst, t6
 	ld t6, REG_T6(a0)
 	ld a0, REG_A0(a0)
+	cpu_enable_irq
 	sret
 
 	.balign 4
 	.global vm_exit
 vm_exit:
 	csrrw a0, sscratch, a0
+
+/*
+ * if SPV is 0x0 (hstatus 0x80), i.e. it's the host-irq-interrupted vm_exit
+ *  without entering guest yet.
+ */
+	sd t1, REG_T1(a0)
+	sd t2, REG_T2(a0)
+	csrr t1, hstatus
+	li t2, 0x80
+	and t1, t1, t2
+	sub t2, t2, t1
+	beqz t2, 1f
+
+/*
+ * fake a guest context with previous saved data.
+ */
+	ld t1, REG_EPC(a0)
+	csrw sepc, t1
+	ld t1, REG_STATUS(a0)
+	csrw sstatus, t1
+#	ld t1, REG_CAUSE(a0)
+#	csrw scause, t1
+	ld t1, REG_TVAL(a0)
+	csrw stval, t1
+	ld t1, REG_HSTATUS(a0)
+	csrw hstatus, t1
+	ld t1, REG_HTVAL(a0)
+	csrw htval, t1
+	ld t1, REG_HTINST(a0)
+	csrw htinst, t1
+
+1:
 	sd ra, REG_RA(a0)
 	sd sp, REG_SP(a0)
 	sd gp, REG_GP(a0)
 	sd tp, REG_TP(a0)
 	sd t0, REG_T0(a0)
-	sd t1, REG_T1(a0)
-	sd t2, REG_T2(a0)
+#	sd t1, REG_T1(a0)
+#	sd t2, REG_T2(a0)
 	sd s0, REG_S0(a0)
 	sd s1, REG_S1(a0)
 	sd a1, REG_A1(a0)
@@ -107,6 +144,10 @@ vm_exit:
 	sd t1, REG_CAUSE(a0)
 	csrr t1, hstatus
 	sd t1, REG_HSTATUS(a0)
+	csrr t1, htval
+	sd t1, REG_HTVAL(a0)
+	csrr t1, htinst
+	sd t1, REG_HTINST(a0)
 	csrrw t1, sscratch, a0
 	sd t1, REG_A0(a0)
 	la t1, strap_handler
