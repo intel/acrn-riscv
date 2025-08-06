@@ -239,6 +239,7 @@ static void allocate_guest_memory(struct acrn_vm *vm, struct kernel_info *info)
 	s2pt_add_mr(vm, vm->arch_vm.s2ptp, hpa, gpa, info->mem_size_gpa, PAGE_V | PAGE_RW_RW | PAGE_X);
 }
 
+#ifndef CONFIG_MACRN
 static int map_irq_to_vm(struct acrn_vm *vm, unsigned int irq)
 {
 //	int res;
@@ -261,7 +262,6 @@ static int map_irq_to_vm(struct acrn_vm *vm, unsigned int irq)
 	return 0;
 }
 
-#ifndef CONFIG_MACRN
 static void passthru_devices_to_vm(struct acrn_vm *vm)
 {
 	// Map all the devices to guest 0x8000000 - 0xb000000
