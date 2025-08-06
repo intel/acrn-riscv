@@ -60,6 +60,7 @@ static inline uint64_t get_mask(uint32_t size)
 	return mask;
 }
 
+#ifdef CONFIG_MACRN
 static int32_t emulate_ins16(struct acrn_vcpu *vcpu, uint32_t ins, uint32_t size)
 {
 	struct acrn_mmio_request *mmio_req = &vcpu->req.reqs.mmio_request;
@@ -110,7 +111,7 @@ int32_t emulate_instruction(struct acrn_vcpu *vcpu)
 	struct run_context *ctx;
 
 	ctx = &vcpu->arch.contexts[vcpu->arch.cur_context].run_ctx;
-	ins = get_instruction(ctx->cpu_gp_regs.regs.status, ctx->cpu_gp_regs.regs.ip, &xlen);
+	ins = get_instruction(ctx, &xlen);
 	size = vcpu->req.reqs.mmio_request.size;
 
 	if (xlen == 32)
@@ -172,3 +173,123 @@ int32_t decode_instruction(struct acrn_vcpu *vcpu, uint32_t ins, uint32_t xlen)
 	else
 		return decode_ins16(vcpu, ins);
 }
+
+#else /* !CONFIG_MACRN */
+
+int32_t emulate_pseudo(struct acrn_vcpu *vcpu, uint32_t ins, uint32_t size)
+{
+	int32_t rc = 0;
+
+	return rc;
+}
+
+int32_t emulate_ins32(struct acrn_vcpu *vcpu, uint32_t ins, uint32_t size)
+{
+	struct acrn_mmio_request *mmio_req = &vcpu->req.reqs.mmio_request;
+	uint64_t pc;
+	int32_t reg, rc = 0;
+	int64_t mask = get_mask(size);
+	int32_t xlen = (ins & 0x3) == 0x1 ? 2: 4;
+
+	pc = vcpu_get_gpreg(vcpu, CPU_REG_IP);
+	vcpu_set_gpreg(vcpu, CPU_REG_IP, pc + xlen);
+
+	if ((INS32_OPCODE_MASK & ins) == 0x3) {
+		reg = (ins & INS32_OPRD_MASK) >> 7;
+		vcpu_set_gpreg(vcpu, reg, (mmio_req->value) & mask);
+	} else if ((INS32_OPCODE_MASK & ins) == 0x23) {
+		reg = (ins & INS32_OPRS2_MASK) >> 20;
+		mmio_req->value = vcpu_get_gpreg(vcpu, reg) & mask;
+	} else {
+		rc = -EFAULT;
+	}
+
+	return rc;
+}
+
+int32_t emulate_instruction(struct acrn_vcpu *vcpu)
+{
+	uint32_t ins, xlen, size, ret = 0;
+	struct run_context *ctx;
+
+	ctx = &vcpu->arch.contexts[vcpu->arch.cur_context].run_ctx;
+	ins = get_instruction(ctx, &xlen);
+	size = vcpu->req.reqs.mmio_request.size;
+
+	xlen = ins & 0x3;
+	switch (xlen) {
+		case 0x0:
+			ret = emulate_pseudo(vcpu, ins, size);
+			break;
+		case 0x1:
+		case 0x3:
+			ret = emulate_ins32(vcpu, ins, size);
+			break;
+		default:
+			break;
+	}
+
+	return ret;
+}
+
+static int32_t decode_ins32(struct acrn_vcpu *vcpu, uint32_t ins)
+{
+	int size = (ins & INS32_OPSIZE_MASK) >> 12;
+
+	switch (size) {
+	case INS32_OPSIZE_BYTE:
+		size = 1;
+		break;
+	case INS32_OPSIZE_HALF:
+		size = 2;
+		break;
+	case INS32_OPSIZE_WORD:
+		size = 4;
+		break;
+	case INS32_OPSIZE_DWORD:
+	default:
+		size = 8;
+		break;
+	}
+
+	return size;
+}
+
+static int32_t decode_pseudo(struct acrn_vcpu *vcpu, uint32_t ins)
+{
+	int size = (ins & INS32_OPSIZE_MASK) >> 12;
+
+	switch (size) {
+	case INS32_OPSIZE_WORD:
+		size = 4;
+		break;
+	case INS32_OPSIZE_DWORD:
+	default:
+		size = 8;
+		break;
+	}
+
+	return size;
+}
+
+
+int32_t decode_instruction(struct acrn_vcpu *vcpu, uint32_t ins, uint32_t xlen)
+{
+	int32_t ret = -1;
+
+	xlen = ins & 0x3;
+	switch (xlen) {
+		case 0x0:
+			ret = decode_pseudo(vcpu, ins);
+			break;
+		case 0x1:
+		case 0x3:
+			ret = decode_ins32(vcpu, ins);
+			break;
+		default:
+			break;
+	}
+
+	return ret;
+}
+#endif

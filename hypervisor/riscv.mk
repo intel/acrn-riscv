@@ -256,7 +256,7 @@ $(HV_OBJDIR)/$(HV_FILE).elf: $(MODULES) $(HV_OBJDIR)/$(ARCH_LDSCRIPT)
 
 $(HV_OBJDIR)/$(ARCH_LDSCRIPT): $(ARCH_LDSCRIPT_IN)
 	#cp $< $@
-	$(CC) -E -P $(patsubst %, -I%, $(INCLUDE_PATH))  $(ARCH_ASFLAGS) -include include/acrn/config.h -MMD -MT $@ -o $@ $<
+	$(CC) -E -P $(patsubst %, -I%, $(INCLUDE_PATH)) $(ASFLAGS) $(ARCH_ASFLAGS) -include include/acrn/config.h -MMD -MT $@ -o $@ $<
 
 
 .PHONY: clean

@@ -41,12 +41,15 @@ emulate_pio_complete(struct acrn_vcpu *vcpu, const struct io_request *io_req)
 }
 
 #ifdef CONFIG_MACRN
-uint32_t get_instruction(uint64_t status, uint64_t gva, uint32_t *xlen)
+uint32_t get_instruction(struct run_context *ctx, uint32_t *xlen)
 {
 	uint64_t m = 0xa0000;
 	register uint32_t ins;
 	uint64_t st;
+	uint64_t status, gva;
 
+	status = ctx->cpu_gp_regs.regs.status;
+	gva = ctx->cpu_gp_regs.regs.ip;
 	ASSERT((status & 0x1800) == 0x800);
 	status |= m;
 	local_irq_disable();
@@ -71,8 +74,9 @@ uint32_t get_instruction(uint64_t status, uint64_t gva, uint32_t *xlen)
 	return ins;
 }
 
-static uint64_t get_gpa(uint64_t *vpn3, uint64_t gva)
+static uint64_t get_gpa(struct run_context *ctx, uint64_t gva)
 {
+	uint64_t *vpn3 = satp_to_vpn3_page(ctx->satp);
 	uint64_t gpa = INVALID_HPA;
 	const uint64_t *pret = NULL;
 	uint64_t pg_size;
@@ -84,16 +88,20 @@ static uint64_t get_gpa(uint64_t *vpn3, uint64_t gva)
 
 	return gpa;
 }
-#else
+#else /* !CONFIG_MACRN */
 
-static uint64_t get_gpa(uint64_t *vpn3, uint64_t gva)
+static uint64_t get_gpa(struct run_context *ctx, __unused uint64_t gva)
 {
-	return gva;
+	return ctx->cpu_gp_regs.regs.htval << 2;
 }
 
-uint32_t get_instruction(uint64_t status, uint64_t gva, uint32_t *xlen)
+uint32_t get_instruction(struct run_context *ctx, __unused uint32_t *len)
 {
-	return 0;
+	uint64_t ins = ctx->cpu_gp_regs.regs.htinst;
+
+	*len = ((ins & 0x11) == 0x1)? 16: 32;
+
+	return ins;
 }
 #endif
 
@@ -116,11 +124,10 @@ int32_t mmio_access_vmexit_handler(struct acrn_vcpu *vcpu)
 
 	/* Handle page fault from guest */
 	exit_qual = vcpu->arch.exit_qualification;
-	ins = get_instruction(ctx->cpu_gp_regs.regs.status,
-			      ctx->cpu_gp_regs.regs.ip, &xlen);
+	ins = get_instruction(ctx, &xlen);
 	gva = ctx->cpu_gp_regs.regs.tval;
 	if (need_pagetable_walk(ctx->satp))
-		gpa = get_gpa(satp_to_vpn3_page(ctx->satp), gva);
+		gpa = get_gpa(ctx, gva);
 	else
 		gpa = gva;
 
