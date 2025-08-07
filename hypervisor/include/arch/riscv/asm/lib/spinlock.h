@@ -11,8 +11,8 @@
 #define __RISCV_LIB_SPINLOCK_H__
 
 #ifndef __ASSEMBLY__
-#include <types.h>
 #include <rtl.h>
+#include <asm/types.h>
 #include <asm/system.h>
 
 typedef struct _spinlock {

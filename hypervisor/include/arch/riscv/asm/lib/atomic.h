@@ -10,7 +10,7 @@
 #ifndef __RISCV_LIB_ATOMIC_H__
 #define __RISCV_LIB_ATOMIC_H__
 
-#include <types.h>
+#include <asm/types.h>
 #include <asm/system.h>
 
 static inline int32_t atomic_add_return(int32_t i, int32_t *v)

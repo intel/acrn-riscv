@@ -10,7 +10,8 @@
 #ifndef __RISCV_VM_CONFIG_H__
 #define __RISCV_VM_CONFIG_H__
 
-#include <types.h>
+#include <asm/config.h>
+#include <asm/types.h>
 #include <pci.h>
 #include <acrn_common.h>
 #include <acrn_hv_defs.h>
@@ -22,8 +23,7 @@
 #define MAX_POST_VM_NUM		4
 #define CONFIG_MAX_VM_NUM	(PRE_VM_NUM + SOS_VM_NUM + MAX_POST_VM_NUM)
 
-#define MAX_PCPU_NUM		8U
-#define AFFINITY_CPU(n)		(1UL << (n))
+#define MAX_PCPU_NUM		CONFIG_NR_CPUS
 #define MAX_VCPUS_PER_VM	VCLINT_LVT_MAX
 #define MAX_VUART_NUM_PER_VM	1U
 #define MAX_VM_OS_NAME_LEN	32U

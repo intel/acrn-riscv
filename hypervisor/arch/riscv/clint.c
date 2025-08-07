@@ -62,19 +62,19 @@ static struct smp_ops clint_smp_ops =
 static void clint_preinit_timer(void)
 {
 	for (int i = BSP_CPU_ID; i < NR_CPUS; i++)
-		writeq_relaxed(CLINT_DISABLE_TIMER, (void *)CLINT_MTIMECMP(i));
+		mmio_writeq(CLINT_DISABLE_TIMER, (void *)CLINT_MTIMECMP(i));
 }
 
 static uint64_t clint_get_tick(void)
 {
-	return readq_relaxed((void *)CLINT_MTIME);
+	return mmio_readq((void *)CLINT_MTIME);
 }
 
 static int clint_set_deadline(uint64_t deadline)
 {
 	uint16_t cpu = get_pcpu_id();
 
-	writeq_relaxed(deadline, (void *)CLINT_MTIMECMP(cpu));
+	mmio_writeq(deadline, (void *)CLINT_MTIMECMP(cpu));
 	//isb();
 
 	return 0;

@@ -11,6 +11,7 @@
 #define __RISCV_TLB_H__
 
 #include <asm/system.h>
+#include <asm/page.h>
 
 #define HTLB_HELPER(name)		\
 static inline void name(void)		\

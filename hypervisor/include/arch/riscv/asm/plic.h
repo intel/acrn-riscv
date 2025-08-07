@@ -12,7 +12,7 @@
 
 #include <types.h>
 #include <asm/lib/spinlock.h>
-#include <acrn/config.h>
+#include <asm/mem.h>
 #include <irq.h>
 
 #define PLIC_IPRR	(0x0000)

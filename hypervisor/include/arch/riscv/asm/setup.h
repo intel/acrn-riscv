@@ -105,8 +105,6 @@ extern struct bootcmdline * boot_cmdline_find_by_name(const char *name);
 extern const char *boot_module_kind_as_string(bootmodule_kind kind);
 
 extern uint32_t hyp_traps_vector[];
-void init_mtrap(void);
-
 extern void device_tree_get_reg(const uint32_t **cell, uint32_t address_cells,
 				 uint32_t size_cells, uint64_t *start, uint64_t *size);
 

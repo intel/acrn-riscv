@@ -15,7 +15,7 @@
 #include <asm/guest/vm.h>
 #include <debug/logmsg.h>
 
-const unsigned int nr_irqs = NR_IRQS;
+const uint32_t nr_irqs = NR_IRQS;
 
 static spinlock_t riscv_irq_spinlock = { .head = 0U, .tail = 0U, };
 static struct arch_irq_desc irq_data[NR_IRQS];
@@ -23,14 +23,14 @@ static struct irq_desc irq_desc[NR_IRQS];
 
 struct acrn_irqchip_ops dummy_irqchip;
 
-struct irq_desc *__irq_to_desc(int irq)
+struct irq_desc *irq_to_desc(int irq)
 {
 	return &irq_desc[irq];
 }
 
 static int arch_data_init_one_irq_desc(struct irq_desc *desc)
 {
-	((struct arch_irq_desc *)desc->arch_data)->type = IRQ_TYPE_INVALID;
+	((struct arch_irq_desc *)desc->arch_data)->type = IRQ_INVALID;
 	return 0;
 }
 
@@ -59,7 +59,7 @@ int init_one_irq_desc(struct irq_desc *desc)
 		return 0;
 	}
 
-	set_bit(_IRQ_DISABLED, &((struct arch_irq_desc *)desc->arch_data)->status);
+	set_bit(IRQ_DISABLED, &((struct arch_irq_desc *)desc->arch_data)->status);
 	((struct arch_irq_desc *)desc->arch_data)->irqchip = &dummy_irqchip;
 
 	err = arch_data_init_one_irq_desc(desc);
@@ -71,7 +71,7 @@ int init_one_irq_desc(struct irq_desc *desc)
 }
 
 /* only run on bsp boot*/
-static void __init init_irq_data(void)
+static void init_irq_data(void)
 {
 	int irq;
 
@@ -83,12 +83,12 @@ static void __init init_irq_data(void)
 	}
 }
 
-void __init init_IRQ(void)
+void init_IRQ(void)
 {
 	init_irq_data();
 }
 
-int irq_set_type(unsigned int irq, unsigned int type)
+int irq_set_type(uint32_t irq, uint32_t type)
 {
 	struct irq_desc *desc;
 
@@ -110,19 +110,19 @@ void post_irq_arch(const struct irq_desc *desc)
 {
 }
 
-void do_IRQ(struct cpu_regs *regs, unsigned int irq)
+void do_IRQ(struct cpu_regs *regs, uint32_t irq)
 {
 	struct irq_desc *desc = irq_to_desc(irq);
 	uint64_t flags;
 
 	spin_lock_irqsave(&desc->lock, &flags);
 
-	if (test_bit(_IRQ_DISABLED, ((struct arch_irq_desc *)desc->arch_data)->status)) {
+	if (test_bit(IRQ_DISABLED, ((struct arch_irq_desc *)desc->arch_data)->status)) {
 		pr_dbg("irq is disabled");
 		goto out;
 	}
 
-	set_bit(_IRQ_INPROGRESS, &((struct arch_irq_desc *)desc->arch_data)->status);
+	set_bit(IRQ_INPROGRESS, &((struct arch_irq_desc *)desc->arch_data)->status);
 
 	// run handler with irq enabled.
 	spin_unlock_irqrestore(&desc->lock, flags);
@@ -131,7 +131,7 @@ void do_IRQ(struct cpu_regs *regs, unsigned int irq)
 
 	// disable irq
 	spin_lock_irqsave(&desc->lock, &flags);
-	clear_bit(_IRQ_INPROGRESS, &((struct arch_irq_desc *)desc->arch_data)->status);
+	clear_bit(IRQ_INPROGRESS, &((struct arch_irq_desc *)desc->arch_data)->status);
 
 out:
 	((struct arch_irq_desc *)desc->arch_data)->irqchip->eoi(desc);
@@ -173,6 +173,7 @@ void handle_mexti(void)
 		pr_dbg("Inject interrupt: %d", irq);
 		vplic_accept_intr(vcpu, irq, true);
 	} while (1);
+
 }
 
 void init_irq_descs_arch(struct irq_desc descs[])

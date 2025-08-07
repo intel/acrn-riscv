@@ -10,12 +10,17 @@
 #ifndef __RISCV_CPU_H__
 #define __RISCV_CPU_H__
 
+#define LONG_BYTEORDER		3
+#define BYTES_PER_LONG		(1 << LONG_BYTEORDER)
+#define BITS_PER_LONG		(BYTES_PER_LONG << 3)
+
+#define NR_CPUS			CONFIG_NR_CPUS
 #define BSP_CPU_ID		CONFIG_BSP_CPU_ID
 
 #ifndef __ASSEMBLY__
-#include <types.h>
 #include <util.h>
 #include <asm/offset.h>
+#include <asm/types.h>
 
 extern uint16_t console_loglevel;
 extern uint16_t mem_loglevel;
@@ -35,9 +40,6 @@ static inline bool need_offline(uint16_t pcpu_id)
 #define MAX_CSTATE	8U /* max num of supported Cx count */
 
 enum cpu_reg_name {
-	/* General purpose register layout should align with
-	 * struct acrn_gp_regs
-	 */
 	CPU_REG_IP,
 	CPU_REG_RA,
 	CPU_REG_SP,
@@ -166,7 +168,6 @@ struct cpu_regs {
 
 struct cpu_info {
 	struct cpu_regs guest_cpu_ctx_regs;
-	unsigned long elr;
 	uint32_t flags;
 };
 
@@ -174,7 +175,7 @@ extern void cpu_dead(void);
 extern void cpu_do_idle(void);
 
 #define barrier()	__asm__ __volatile__("fence": : :"memory")
-#define cpu_relax()	barrier() /* Could yield? */
+#define cpu_relax()	barrier() /* TODO: replace with yield instruction */
 
 #define ASM_STR(x)	#x
 
@@ -261,7 +262,7 @@ struct ext_context {
 struct run_context {
 /* Contains the guest register set.
  * NOTE: This must be the first element in the structure, so that the offsets
- * in vmx_asm.S match
+ * in virt.s/pmp.s match
  */
 	union cpu_regs_t {
 		struct cpu_regs regs;
@@ -283,30 +284,6 @@ struct cpu_context {
 	struct run_context run_ctx;
 	struct ext_context ext_ctx;
 };
-
-/*
- * Entries in the Interrupt Descriptor Table (IDT)
- */
-#define IDT_DE		0U   /* #DE: Divide Error */
-#define IDT_DB		1U   /* #DB: Debug */
-#define IDT_NMI		2U   /* Nonmaskable External Interrupt */
-#define IDT_BP		3U   /* #BP: Breakpoint */
-#define IDT_OF		4U   /* #OF: Overflow */
-#define IDT_BR		5U   /* #BR: Bound Range Exceeded */
-#define IDT_UD		6U   /* #UD: Undefined/Invalid Opcode */
-#define IDT_NM		7U   /* #NM: No Math Coprocessor */
-#define IDT_DF		8U   /* #DF: Double Fault */
-#define IDT_FPUGP	9U   /* Coprocessor Segment Overrun */
-#define IDT_TS		10U  /* #TS: Invalid TSS */
-#define IDT_NP		11U  /* #NP: Segment Not Present */
-#define IDT_SS		12U  /* #SS: Stack Segment Fault */
-#define IDT_GP		13U  /* #GP: General Protection Fault */
-#define IDT_PF		14U  /* #PF: Page Fault */
-#define IDT_MF		16U  /* #MF: FPU Floating-Point Error */
-#define IDT_AC		17U  /* #AC: Alignment Check */
-#define IDT_MC		18U  /* #MC: Machine Check */
-#define IDT_XF		19U  /* #XF: SIMD Floating-Point Exception */
-#define IDT_VE		20U  /* #VE: Virtualization Exception */
 
 extern int get_pcpu_nums(void);
 

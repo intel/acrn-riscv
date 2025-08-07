@@ -17,7 +17,7 @@
 #include <event.h>
 #include <io_req.h>
 #include <asm/cpu.h>
-#include <asm/vmx.h>
+#include <asm/mem.h>
 #include <asm/guest/guest_memory.h>
 #include <asm/guest/vclint.h>
 

@@ -104,6 +104,7 @@ pgtable_t __aligned(PAGE_SIZE) name[PG_TABLE_ENTRIES * (nr)]
 #ifndef __ASSEMBLY__
 
 #include <asm/init.h>
+#include <asm/page.h>
 #include <asm/mem.h>
 
 struct page {
@@ -130,19 +131,19 @@ enum _page_table_level {
 };
 
 typedef struct __packed {
-	unsigned long v:1;
-	unsigned long r:1;
-	unsigned long w:1;
-	unsigned long x:1;
-	unsigned long u:1;
-	unsigned long g:1;
-	unsigned long a:1;
-	unsigned long d:1;
-	unsigned long rsw:2;
-	unsigned long long base:44; /* Base address of block or next table */
-	unsigned long rsv:7;
-	unsigned long pbmt:2;
-	unsigned long n:1;
+	uint64_t v:1;
+	uint64_t r:1;
+	uint64_t w:1;
+	uint64_t x:1;
+	uint64_t u:1;
+	uint64_t g:1;
+	uint64_t a:1;
+	uint64_t d:1;
+	uint64_t rsw:2;
+	uint64_t base:44; /* Base address of block or next table */
+	uint64_t rsv:7;
+	uint64_t pbmt:2;
+	uint64_t n:1;
 } pgtable_pt_t;
 
 /*
@@ -150,13 +151,13 @@ typedef struct __packed {
  * simply walk the table (e.g. for debug).
  */
 typedef struct __packed {
-	unsigned long v:1;
-	unsigned long r:1;
-	unsigned long w:1;
-	unsigned long x:1;
-	unsigned long pad2:6;
-	unsigned long long base:44; /* Base address of block or next table */
-	unsigned long pad1:10;
+	uint64_t v:1;
+	uint64_t r:1;
+	uint64_t w:1;
+	uint64_t x:1;
+	uint64_t pad2:6;
+	uint64_t base:44; /* Base address of block or next table */
+	uint64_t pad1:10;
 } pgtable_walk_t;
 
 typedef union {
@@ -310,7 +311,7 @@ extern uint64_t init_satp;
 #define MT_IO		0x2
 #define MT_RSV		0x3
 
-static inline pgtable_t mfn_to_acrn_entry(mfn_t mfn, unsigned attr, bool table)
+static inline pgtable_t mfn_to_acrn_entry(mfn_t mfn, uint8_t attr, bool table)
 {
 	volatile pgtable_t e = (pgtable_t) {
 		.pt = {
@@ -325,7 +326,7 @@ static inline pgtable_t mfn_to_acrn_entry(mfn_t mfn, unsigned attr, bool table)
 		e.pt.w = 0;
 	}
 
-	switch ( attr )
+	switch (attr)
 	{
 	case MT_IO:
 		e.pt.pbmt |= PAGE_ATTR_IO;
@@ -395,6 +396,7 @@ static inline pgtable_t mfn_to_acrn_entry(mfn_t mfn, unsigned attr, bool table)
  */
 #define PAGE_FAULT_ID_FLAG	 0x00000010U
 
+extern void init_s2pt_mem_ops(struct memory_ops *mem_ops, uint16_t vm_id);
 #endif /* __ASSEMBLY__ */
 
 #endif /* __RISCV_PGTABLE_H__ */

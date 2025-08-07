@@ -7,7 +7,6 @@
  *   Haicheng Li <haicheng.li@intel.com>
  */
 
-#include <acrn/config.h>
 #include <types.h>
 
 #define UART_BASE (volatile uint8_t *)0x10000000

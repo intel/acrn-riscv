@@ -14,6 +14,7 @@
 
 #include <asm/smp.h>
 #include <asm/notify.h>
+#include <asm/config.h>
 #include <asm/vm_config.h>
 #include <asm/guest/vcpu.h>
 #include <logmsg.h>
@@ -48,7 +49,7 @@ struct per_cpu_region {
 	struct sched_prio_control sched_prio_ctl;
 } __aligned(PAGE_SIZE); /* per_cpu_region size aligned with PAGE_SIZE */
 
-extern struct per_cpu_region per_cpu_data[MAX_PCPU_NUM];
+extern struct per_cpu_region per_cpu_data[NR_CPUS];
 #define per_cpu(name, pcpu_id)	\
 	(per_cpu_data[(pcpu_id)].name)
 #define get_cpu_var(name)	per_cpu(name, get_pcpu_id())

@@ -10,6 +10,7 @@
 #include <lib/types.h>
 #include <asm/lib/bits.h>
 #include <asm/cpu.h>
+#include <asm/vmx.h>
 #include <asm/irq.h>
 #include <asm/tlb.h>
 #include <asm/smp.h>

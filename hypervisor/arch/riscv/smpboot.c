@@ -36,19 +36,10 @@ uint64_t cpu_possible_map = 0UL;
 uint64_t __cpu_logical_map[NR_CPUS] = { [0 ... NR_CPUS-1] = MP_INVALID_IDX};
 #define cpu_logical_map(cpu) __cpu_logical_map[cpu]
 
-
-static unsigned char __initdata cpu0_boot_stack[STACK_SIZE] __attribute__((__aligned__(STACK_SIZE)));
-
-struct init_info init_data =
-{
-	.stack = cpu0_boot_stack,
-};
-
 /* Shared state for coordinating CPU bringup */
 uint64_t smp_up_cpu = MP_INVALID_IDX;
 
-void __init
-smp_clear_cpu_maps(void)
+void smp_clear_cpu_maps(void)
 {
 /*
  * On Sophgo, it needs to explictly set the value since the very early
@@ -56,6 +47,9 @@ smp_clear_cpu_maps(void)
  */
 	cpu_online_map = 0UL;
 	cpu_possible_map = 0UL;
+
+	set_bit(0, &cpu_online_map);
+	set_bit(0, &cpu_possible_map);
 }
 
 void start_secondary(uint32_t cpu)
@@ -115,13 +109,6 @@ int __cpu_up(unsigned int cpu)
 	if ( rc < 0 )
 		return rc;
 #endif
-
-	/* Tell the remote CPU which stack to boot on. */
-	init_data.stack = (unsigned char *)&idle_vcpu[cpu].stack;
-
-	/* Tell the remote CPU what its logical CPU ID is. */
-	init_data.cpuid = cpu;
-
 	/* Open the gate for this CPU */
 	smp_up_cpu = cpu_logical_map(cpu);
 	clean_dcache(smp_up_cpu);
@@ -140,8 +127,6 @@ int __cpu_up(unsigned int cpu)
 
 	smp_rmb();
 
-	init_data.stack = NULL;
-	init_data.cpuid = ~0;
 	smp_up_cpu = MP_INVALID_IDX;
 	clean_dcache(smp_up_cpu);
 
@@ -162,7 +147,7 @@ void start_pcpus(uint32_t cpu)
 	}
 }
 
-void __init smp_init_cpus(void)
+void smp_init_cpus(void)
 {
 	for (int i = BSP_CPU_ID; i < NR_CPUS; i++) {
 		set_bit(i, &cpu_possible_map);

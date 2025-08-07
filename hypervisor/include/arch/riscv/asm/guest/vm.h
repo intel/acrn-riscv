@@ -23,6 +23,7 @@
 #include <asm/guest/vuart.h>
 #include <vpci.h>
 #include <asm/vm_config.h>
+#include <asm/pgtable.h>
 
 enum reset_mode {
 	POWER_ON_RESET,		/* reset by hardware Power-on */
@@ -226,7 +227,8 @@ extern void start_vm(struct acrn_vm *vm);
 extern void start_sos_vm(void);
 extern int32_t reset_vm(struct acrn_vm *vm);
 extern int32_t create_vm(struct acrn_vm *vm);
-extern void prepare_vm(uint16_t vm_id, struct acrn_vm_config *vm_config);
+extern void prepare_sos_vm(void);
+extern void prepare_uos_vm(void);
 extern void launch_vms(uint16_t pcpu_id);
 extern bool is_poweroff_vm(const struct acrn_vm *vm);
 extern bool is_created_vm(const struct acrn_vm *vm);

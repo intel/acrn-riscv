@@ -25,8 +25,7 @@
 #include <debug/logmsg.h>
 #include <debug/shell.h>
 
-struct bootinfo bootinfo;
-size_t dcache_line_bytes;
+size_t dcache_block_size;
 
 /* C entry point for boot CPU */
 void start_acrn(uint32_t cpu, unsigned long boot_phys_offset,
@@ -42,7 +41,7 @@ void start_acrn(uint32_t cpu, unsigned long boot_phys_offset,
 	init_logmsg();
 
 	setup_mem(boot_phys_offset);
-	dcache_line_bytes = read_dcache_line_bytes();
+	dcache_block_size = get_dcache_block_size();
 
 	pr_info("start acrn, boot_phys_offset = 0x%lx\n", boot_phys_offset);
 #ifdef CONFIG_MACRN

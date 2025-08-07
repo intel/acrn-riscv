@@ -18,8 +18,6 @@
 #include <asm/board.h>
 #include <asm/cache.h>
 #include <asm/page.h>
-#include <asm/board.h>
-#include <asm/defconfig.h>
 
 #ifndef CONFIG_MACRN
 
@@ -55,13 +53,7 @@ static inline pgtable_t pte_of_ioaddr(uint64_t va, bool table)
 	return mfn_to_acrn_entry(maddr_to_mfn(ma), MT_IO, table);
 }
 
-static void acrn_pt_enforce_wnx(void)
-{
-	isb();
-	flush_acrn_tlb_local();
-}
-
-static void __init map_hv(unsigned long boot_phys_offset)
+static void map_hv(uint64_t boot_phys_offset)
 {
 	uint64_t satp;
 	pgtable_t pte, *p;
@@ -72,13 +64,13 @@ static void __init map_hv(unsigned long boot_phys_offset)
 	p[0] = pte_of_acrnaddr((uint64_t)acrn_vpn2, true);
 	p = (void *)acrn_vpn2;
 
-	for ( i = 0; i < 8; i++)
+	for (i = 0; i < 8; i++)
 	{
 		p[i] = pte_of_acrnaddr((uint64_t)(acrn_vpn1+i*PG_TABLE_ENTRIES), true);
 	}
 
 	/* Map 0 ~ (ACRN_VIRT_START - 1) as IO address space */
-	for ( i = 0; i < 8 * 512; i++ ) {
+	for (i = 0; i < 8 * 512; i++) {
 		int t = acrn_vpn1_index(ACRN_VIRT_START);
 		uint64_t va = i << VPN1_SHIFT;
 		if (i >= t)
@@ -95,14 +87,11 @@ static void __init map_hv(unsigned long boot_phys_offset)
 			uint64_t va = ACRN_VIRT_START + (i << PAGE_SHIFT) + (j << VPN1_SHIFT);
 
 			pte = pte_of_acrnaddr(va, false);
-			if (is_kernel_text(va) || is_kernel_inittext(va))
+			if (is_hv_text(va))
 			{
-				pte.pt.w = 1;
+				pte.pt.w = 0;
 				pte.pt.x = 1;
 			}
-			if ( is_kernel_rodata(va) )
-				pte.pt.w = 1;
-
 			acrn_vpn0[i + j * PG_TABLE_ENTRIES] = pte;
 		}
 	}
@@ -114,10 +103,9 @@ static void __init map_hv(unsigned long boot_phys_offset)
 	init_satp = (satp >> 12) | SATP_MODE_SV48;
 
 	switch_satp(init_satp);
-	acrn_pt_enforce_wnx();
 }
 
-static void __init map_mem(void)
+static void map_mem(void)
 {
 	mmu_add((uint64_t *)acrn_vpn3, BOARD_HV_DEVICE_START,
 		BOARD_HV_DEVICE_START, BOARD_HV_DEVICE_SIZE,
@@ -132,7 +120,7 @@ static void __init map_mem(void)
 static void clear_table(void *table)
 {
 	clear_page(table);
-	clean_and_invalidate_dcache_va_range(table, PAGE_SIZE);
+	flush_dcache_range(table, PAGE_SIZE);
 }
 
 void clear_fixmap_pagetable(void)
@@ -154,19 +142,19 @@ int init_secondary_pagetables(int cpu)
 
 #else /* CONFIG_MACRN */
 
-static void __init map_hv(unsigned long boot_phys_offset)
+static void map_hv(uint64_t boot_phys_offset)
 {
 	phys_offset = boot_phys_offset;
 }
 
-static void __init map_mem(void)
+static void map_mem(void)
 {
 }
 
 #endif
 
 uint64_t phys_offset;
-void __init setup_mem(unsigned long boot_phys_offset)
+void setup_mem(uint64_t boot_phys_offset)
 {
 	map_hv(boot_phys_offset);
 	map_mem();

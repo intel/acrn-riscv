@@ -12,7 +12,6 @@
 
 #ifndef __ASSEMBLY__
 
-#define sev()           asm volatile("nop" : : : "memory")
 #define wfe()           asm volatile("nop" : : : "memory")
 #define wfi()           asm volatile("wfi" : : : "memory")
 
@@ -35,7 +34,7 @@
 ({								\
 	asm volatile ("csrr t0, mstatus\n\t"			\
 		      "sd t0, (%0)\n"				\
-		      ::"r"((unsigned long)x):"memory", "t0");	\
+		      ::"r"((uint64_t)x):"memory", "t0");	\
 })
 
 #define local_irq_restore(x)					\
@@ -52,7 +51,7 @@
 ({								\
 	asm volatile ("csrr t0, sstatus\n\t"			\
 		      "sd t0, (%0)\n"				\
-		      ::"r"((unsigned long)x):"memory", "t0");	\
+		      ::"r"((uint64_t)x):"memory", "t0");	\
 })
 
 #define local_irq_restore(x)					\
@@ -72,18 +71,16 @@
 
 static inline int local_irq_is_enabled(void)
 {
-	unsigned long flags;
+	uint64_t flags;
 	local_save_flags(flags);
 	return !(flags & 0x2);
 }
 
-/* Synchronizes all write accesses to memory */
 static inline void cpu_write_memory_barrier(void)
 {
 	asm volatile ("fence\n" : : : "memory");
 }
 
-/* Synchronizes all read and write accesses to/from memory */
 static inline void cpu_memory_barrier(void)
 {
 	asm volatile ("fence\n" : : : "memory");

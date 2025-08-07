@@ -1,3 +1,6 @@
+API_MAJOR_VERSION=1
+API_MINOR_VERSION=0
+
 CROSS_COMPILE ?= riscv64-unknown-linux-gnu-
 
 #enable stack overflow check
@@ -13,16 +16,8 @@ CFLAGS := -D__riscv64__
 ASFLAGS := -D__riscv64__
 LDFLAGS :=
 ARFLAGS :=
-ifdef CONFIG_SIFIVE_UNMATCHED
-ARCH_CFLAGS := -march=rv64imafdc_zifencei -mabi=lp64d -mcmodel=medany
-ARCH_ASFLAGS :=  -march=rv64imafdc_zifencei
-CFLAGS += -DCONFIG_SIFIVE_UNMATCHED
-ASFLAGS += -DCONFIG_SIFIVE_UNMATCHED
-CONFIG_SIFIVE_UART := 1
-else
-ARCH_CFLAGS := -march=rv64gh_zifencei_zbb -mabi=lp64d -mcmodel=medany
-ARCH_ASFLAGS := -march=rv64gh_zifencei_zbb
-endif
+ARCH_CFLAGS := -march=rv64gh_zifencei_zbb_zicbom -mabi=lp64d -mcmodel=medany
+ARCH_ASFLAGS := -march=rv64gh_zifencei_zbb_zicbom
 ARCH_ARFLAGS :=
 ARCH_LDFLAGS := -mcmodel=medany
 
@@ -92,8 +87,8 @@ ARCH_ASFLAGS += -DCONFIG_RISCV64
 ARCH_ASFLAGS += -D__ACRN__
 ARCH_ASFLAGS += -xassembler-with-cpp
 
-ARCH_LDSCRIPT = ram_link.ld
-ARCH_LDSCRIPT_IN = arch/riscv/ram_link.lds.S
+ARCH_LDSCRIPT = rv_link.ld
+ARCH_LDSCRIPT_IN = arch/riscv/rv_link.lds.S
 
 INCLUDE_PATH += boot/include/
 INCLUDE_PATH += include/lib/
@@ -105,7 +100,7 @@ INCLUDE_PATH += include/arch/
 INCLUDE_PATH += include/debug/
 INCLUDE_PATH += include/public/
 INCLUDE_PATH += include/dm/
-INCLUDE_PATH += include/arch/$(ARCH)
+INCLUDE_PATH += include/arch/$(ARCH)/
 #INCLUDE_PATH += /usr/include
 
 CC := $(CROSS_COMPILE)gcc
@@ -117,7 +112,7 @@ OBJCOPY ?= $(CROSS_COMPILE)objcopy
 CFLAGS += -DCONFIG_RETPOLINE
 
 # m-mode hypervisor
-#CONFIG_MACRN := 1
+CONFIG_MACRN := 1
 
 # unit testing framework with builtin fake kernel
 #CONFIG_KTEST := 1
@@ -238,9 +233,12 @@ MODULES += $(BOOT_MOD)
 
 DISTCLEAN_OBJS := $(shell find $(BASEDIR) -name '*.o')
 
+VERSION_H := $(HV_OBJDIR)/include/version.h
+HV_CONFIG_H := $(HV_OBJDIR)/include/config.h
+BOARD_INFO_H := $(HV_OBJDIR)/include/board_info.h
 
 .PHONY: all
-all: $(HV_OBJDIR)/$(HV_FILE).elf
+all: $(VERSION_H) $(HV_OBJDIR)/$(HV_FILE).elf
 
 
 .PHONY: boot-mod 
@@ -256,7 +254,52 @@ $(HV_OBJDIR)/$(HV_FILE).elf: $(MODULES) $(HV_OBJDIR)/$(ARCH_LDSCRIPT)
 
 $(HV_OBJDIR)/$(ARCH_LDSCRIPT): $(ARCH_LDSCRIPT_IN)
 	#cp $< $@
-	$(CC) -E -P $(patsubst %, -I%, $(INCLUDE_PATH)) $(ASFLAGS) $(ARCH_ASFLAGS) -include include/acrn/config.h -MMD -MT $@ -o $@ $<
+	$(CC) -E -P $(patsubst %, -I%, $(INCLUDE_PATH)) $(ASFLAGS) $(ARCH_ASFLAGS) -include $(HV_OBJDIR)/include/config.h -MMD -MT $@ -o $@ $<
+
+
+$(HV_CONFIG_H):
+	mkdir -p $(HV_OBJDIR)/include
+	touch $(HV_CONFIG_H)
+	echo "#ifndef HV_CONFIG_H" >> $(HV_CONFIG_H); \
+	echo "#define HV_CONFIG_H" >> $(HV_CONFIG_H); \
+	echo "#include <asm/config.h>" >> $(HV_CONFIG_H); \
+	echo "#include <asm/board.h>" >> $(HV_CONFIG_H); \
+	echo "#endif" >> $(HV_CONFIG_H)
+
+$(BOARD_INFO_H):
+	mkdir -p $(HV_OBJDIR)/include
+	touch $(BOARD_INFO_H)
+	echo "#ifndef BOARD_INFO_H" >> $(BOARD_INFO_H); \
+	echo "#define BOARD_INFO_H" >> $(BOARD_INFO_H); \
+	echo "#endif" >> $(BOARD_INFO_H)
+
+$(VERSION_H): $(HV_CONFIG_H) $(BOARD_INFO_H)
+	mkdir -p $(HV_OBJDIR)/include
+	touch $(VERSION_H)
+	COMMIT_TAGS=$$(git tag --points-at HEAD|tr -s "\n" " "); \
+	COMMIT_TAGS=$$(eval echo $$COMMIT_TAGS);\
+	COMMIT_TIME=$$(git log -1 --date=format:"%Y-%m-%d-%T" --format=%cd); \
+	TIME=$$(date -u -d "@$${SOURCE_DATE_EPOCH:-$$(date +%s)}" "+%Y-%m-%d %H:%M:%S"); \
+	USER="$${USER:-$$(id -u -n)}"; \
+	if [ x$(CONFIG_RELEASE) = "xy" ];then BUILD_TYPE="REL";else BUILD_TYPE="DBG";fi;\
+	echo "/*" > $(VERSION_H); \
+	sed 's/^/ * /' ../LICENSE >> $(VERSION_H);\
+	echo " */" >> $(VERSION_H);\
+	echo "" >> $(VERSION_H);\
+	echo "#ifndef VERSION_H" >> $(VERSION_H); \
+	echo "#define VERSION_H" >> $(VERSION_H); \
+	echo "#define HV_API_MAJOR_VERSION $(API_MAJOR_VERSION)U" >> $(VERSION_H);\
+	echo "#define HV_API_MINOR_VERSION $(API_MINOR_VERSION)U" >> $(VERSION_H);\
+	echo "#define HV_BRANCH_VERSION "\"$(BRANCH_VERSION)\""" >> $(VERSION_H);\
+	echo "#define HV_COMMIT_DIRTY "\""$$PATCH"\""" >> $(VERSION_H);\
+	echo "#define HV_COMMIT_TAGS "\"$$COMMIT_TAGS\""" >> $(VERSION_H);\
+	echo "#define HV_COMMIT_TIME "\"$$COMMIT_TIME\""" >> $(VERSION_H);\
+	echo "#define HV_BUILD_TYPE "\""$$BUILD_TYPE"\""" >> $(VERSION_H);\
+	echo "#define HV_BUILD_TIME "\""$$TIME"\""" >> $(VERSION_H);\
+	echo "#define HV_BUILD_USER "\""$$USER"\""" >> $(VERSION_H);\
+	echo "#define HV_BUILD_SCENARIO "\"$(SCENARIO)\""" >> $(VERSION_H);\
+	echo "#define HV_BUILD_BOARD "\"$(BOARD)\""" >> $(VERSION_H);\
+	echo "#endif" >> $(VERSION_H)
 
 
 .PHONY: clean
@@ -270,12 +313,20 @@ distclean:
 	rm -rf $(HV_OBJDIR)
 	rm -f tags TAGS cscope.files cscope.in.out cscope.out cscope.po.out GTAGS GPATH GRTAGS GSYMS
 
-$(HV_OBJDIR)/%.o: %.c  $(HV_OBJDIR)/$(HV_CONFIG_H) $(TARGET_ACPI_INFO_HEADER)
+$(HV_OBJDIR)/%.o: %.c
 	[ ! -e $@ ] && mkdir -p $(dir $@) && mkdir -p $(HV_MODDIR); \
-	$(CC) $(patsubst %, -I%, $(INCLUDE_PATH)) $(CFLAGS) $(ARCH_CFLAGS) -include include/acrn/config.h -c  $< -o $@ -MMD -MT $@
+	$(CC) $(patsubst %, -I%, $(INCLUDE_PATH)) $(CFLAGS) $(ARCH_CFLAGS) -include $(HV_OBJDIR)/include/config.h -c  $< -o $@ -MMD -MT $@
 
 $(HV_OBJDIR)/%.o: %.s
 	[ ! -e $@ ] && mkdir -p $(dir $@) && mkdir -p $(HV_MODDIR); \
-	$(CC) $(patsubst %, -I%, $(INCLUDE_PATH)) $(ASFLAGS) $(ARCH_ASFLAGS) -include include/acrn/config.h -c $< -o $@ -MMD -MT $@
+	$(CC) $(patsubst %, -I%, $(INCLUDE_PATH)) $(ASFLAGS) $(ARCH_ASFLAGS) -include $(HV_OBJDIR)/include/config.h -c $< -o $@ -MMD -MT $@
 
 .DEFAULT_GOAL := all
+
+.PHONY: showconfig
+showconfig:
+	@echo "Build directory: $(HV_OBJDIR)"
+	@echo "This build directory is configured with the settings below."
+	@echo "- BOARD = $(BOARD)"
+	@echo "- SCENARIO = $(SCENARIO)"
+	@echo "- RELEASE = $(RELEASE)"

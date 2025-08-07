@@ -63,7 +63,7 @@ static int32_t local_gva2gpa_common(struct acrn_vcpu *vcpu, const struct page_wa
 	void *base;
 	uint64_t entry = 0U;
 	uint64_t addr;
-	uint64_t page_size = PAGE_SIZE_4K;
+	uint64_t page_size = PAGE_SIZE;
 	int32_t ret = 0;
 	int32_t fault = 0;
 	bool is_user_mode_addr = true;
@@ -252,7 +252,7 @@ static inline uint32_t local_copy_gpa(struct acrn_vm *vm, void *h_ptr, uint64_t 
 	uint32_t size, uint32_t fix_pg_size, bool cp_from_vm)
 {
 	uint64_t hpa;
-	uint32_t offset_in_pg, len, pg_size = PAGE_SIZE_4K;
+	uint32_t offset_in_pg, len, pg_size = PAGE_SIZE;
 	void *g_ptr;
 
 	hpa = local_gpa2hpa(vm, gpa, &pg_size);
@@ -323,7 +323,7 @@ static inline int32_t copy_gva(struct acrn_vcpu *vcpu, void *h_ptr_arg, uint64_t
 	while ((size > 0U) && (ret == 0)) {
 		ret = gva2gpa(vcpu, gva, &gpa, err_code);
 		if (ret >= 0) {
-			len = local_copy_gpa(vcpu->vm, h_ptr, gpa, size, PAGE_SIZE_4K, cp_from_vm);
+			len = local_copy_gpa(vcpu->vm, h_ptr, gpa, size, PAGE_SIZE, cp_from_vm);
 			if (len != 0U) {
 				gva += len;
 				h_ptr += len;

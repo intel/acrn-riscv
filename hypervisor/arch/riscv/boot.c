@@ -22,7 +22,7 @@ paddr_t fw_dtb = 0UL;
 
 void get_kernel_info(struct kernel_info *info)
 {
-	info->kernel_addr = fw_dinfo->next_addr;
+	info->kernel_addr = fw_dinfo->addr;
 	info->kernel_len = KERNEL_IMAGE_SIZE;
 }
 

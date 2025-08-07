@@ -16,8 +16,7 @@
 #include <lib/errno.h>
 //#include <asm/s2mm.h>
 #include <asm/board.h>
-#include <acrn/config.h>
-//#include <asm/sched.h>
+#include <asm/mem.h>
 #include <irq.h>
 #include <asm/board.h>
 #include <asm/current.h>

@@ -7,7 +7,7 @@
  *   Haicheng Li <haicheng.li@intel.com>
  */
 
-#include <asm/config.h>
+#include <asm/mem.h>
 #include <asm/cpu.h>
 
 	.text
