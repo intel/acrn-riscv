@@ -1,7 +1,10 @@
 /*
- * Copyright (C) 2023-2024 Intel Corporation. All rights reserved.
+ * SPDX-License-Identifier: BSD-2-Clause
  *
- * SPDX-License-Identifier: BSD-3-Clause
+ * Copyright (c) 2019 Western Digital Corporation or its affiliates.
+ *
+ * Authors:
+ *   Anup Patel <anup.patel@wdc.com>
  */
 
 #ifndef __RISCV_BOOT_H__

@@ -2,6 +2,9 @@
  * Copyright (C) 2023 Intel Corporation. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
+ *
+ * Authors:
+ *   Haicheng Li <haicheng.li@intel.com>
  */
 
 #ifndef __RISCV_APICREG_H__

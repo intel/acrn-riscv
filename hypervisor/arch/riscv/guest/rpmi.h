@@ -2,6 +2,9 @@
  * Copyright (C) 2025 Intel Corporation.
  *
  * SPDX-License-Identifier: BSD-3-Clause
+ *
+ * Authors:
+ *   Haicheng Li <haicheng.li@intel.com>
  */
 
 #ifndef __RISCV_RPMI_H__

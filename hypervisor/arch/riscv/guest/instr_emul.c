@@ -2,6 +2,8 @@
  * Copyright (C) 2023-2024 Intel Corporation. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
+ *
+ * Haicheng Li <haicheng.li@intel.com>
  */
 
 #include <errno.h>
