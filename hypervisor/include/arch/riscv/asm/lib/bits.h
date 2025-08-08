@@ -16,8 +16,9 @@
 #define __clear_bit(n,p)	clear_bit(n,p)
 
 #define always_inline __inline__ __attribute__ ((__always_inline__))
-#ifdef CONFIG_MACRN
-static always_inline uint64_t ffsl(uint64_t x)
+#ifndef CONFIG_MACRN
+static uint64_t ffsl(uint64_t x)
+//static always_inline uint64_t ffsl(uint64_t x)
 {
 	int m = 0x1, i;
 

@@ -135,7 +135,7 @@ static void clear_boot_pagetables(void)
 int init_secondary_pagetables(int cpu)
 {
 	clear_boot_pagetables();
-	clean_dcache(init_satp);
+	clean_dcache(&init_satp);
 
 	return 0;
 }

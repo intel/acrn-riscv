@@ -112,7 +112,7 @@ OBJCOPY ?= $(CROSS_COMPILE)objcopy
 CFLAGS += -DCONFIG_RETPOLINE
 
 # m-mode hypervisor
-CONFIG_MACRN := 1
+#CONFIG_MACRN := 1
 
 # unit testing framework with builtin fake kernel
 #CONFIG_KTEST := 1

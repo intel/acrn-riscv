@@ -13,12 +13,12 @@
 
 #ifndef CONFIG_EFI_BOOT
 
-#define KERNEL_IMAGE_SIZE	0x10000000
 #define DTB_IMAGE_SIZE		CONFIG_SOS_DTB_SIZE
 
 #ifdef CONFIG_MACRN
 struct fw_dynamic_info *fw_dinfo = NULL;
 paddr_t fw_dtb = 0UL;
+#define KERNEL_IMAGE_SIZE	0x10000000
 
 void get_kernel_info(struct kernel_info *info)
 {
@@ -32,6 +32,7 @@ void get_dtb_info(struct dtb_info *info)
 	info->dtb_len = DTB_IMAGE_SIZE;
 }
 #else
+#define KERNEL_IMAGE_SIZE	CONFIG_SOS_MEM_SIZE
 #define KERNEL_IMAGE_START	CONFIG_SOS_MEM_START
 #define DTB_IMAGE_START		CONFIG_SOS_DTB_BASE
 

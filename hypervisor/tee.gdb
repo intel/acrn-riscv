@@ -1,7 +1,11 @@
 layout regs
 target remote localhost:1235
-add-symbol-file ./build/acrn.elf 0x80000000
+add-symbol-file ./build/acrn.elf
 add-symbol-file ~/linux-riscv/vmlinux
+b send_vipi_mask
+b smp_platform_init
+b start_pcpus
+b init_secondary_pagetables
 #b sbi_mpxy_send_message_withresp
 #b thread_sbi_mpxy_reqfwd_retrieve_message
 #b thread_handle_request
@@ -9,9 +13,9 @@ add-symbol-file ~/linux-riscv/vmlinux
 #b sbi_mpxy_handler
 #b tee_switch
 #b thread_handle_request
-b mpxy_send_message_with_resp
-b optee_riscv_mpxy_mbox_send_resp 
-b optee_msg_api_uid_is_optee_api
+#b mpxy_send_message_with_resp
+#b optee_riscv_mpxy_mbox_send_resp
+#b optee_msg_api_uid_is_optee_api
 #b ree_switch_to_tee
 #b tee_switch_to_ree
 #b std_abi_entry

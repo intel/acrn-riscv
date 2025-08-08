@@ -81,6 +81,7 @@ void vcpu_make_request(struct acrn_vcpu *vcpu, uint16_t eventid)
  * @retval true when INT is injected to guest.
  * @retval false when otherwise
  */
+#if 0
 static bool vcpu_do_pending_extint(const struct acrn_vcpu *vcpu)
 {
 	struct acrn_vm *vm;
@@ -112,6 +113,7 @@ static bool vcpu_do_pending_extint(const struct acrn_vcpu *vcpu)
 
 	return ret;
 }
+#endif
 #endif
 #endif
 

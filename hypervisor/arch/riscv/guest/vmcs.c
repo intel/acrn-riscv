@@ -32,7 +32,9 @@ static void init_guest_state(struct acrn_vcpu *vcpu)
 	cpu_csr_write(vsstatus, ctx->run_ctx.sstatus);
 	cpu_csr_write(vsepc, ctx->run_ctx.sepc);
 	cpu_csr_write(vsip, ctx->run_ctx.sip);
+//	cpu_csr_write(hvip, (ctx->run_ctx.sip & 0x222) << 1);
 	cpu_csr_write(vsie, ctx->run_ctx.sie);
+//	cpu_csr_write(hie, (ctx->run_ctx.sie & 0x22) << 1);
 	cpu_csr_write(vstvec, ctx->run_ctx.stvec);
 	cpu_csr_write(vsscratch, ctx->run_ctx.sscratch);
 	cpu_csr_write(vstval, ctx->run_ctx.stval);
@@ -46,9 +48,10 @@ static void load_guest_state(struct acrn_vcpu *vcpu)
 
 	cpu_csr_write(vsstatus, ctx->run_ctx.sstatus);
 	cpu_csr_write(vsepc, ctx->run_ctx.sepc);
-	cpu_csr_write(vsip, ctx->run_ctx.sip);
-	cpu_csr_set(hvip, ctx->run_ctx.sip);
+//	cpu_csr_write(vsip, ctx->run_ctx.sip);
+	cpu_csr_write(hvip, (ctx->run_ctx.sip & 0x2) << 1);
 	cpu_csr_write(vsie, ctx->run_ctx.sie);
+//	cpu_csr_write(hie, (ctx->run_ctx.sie & 0x2) << 1);
 	cpu_csr_write(vstvec, ctx->run_ctx.stvec);
 	cpu_csr_write(vsscratch, ctx->run_ctx.sscratch);
 	cpu_csr_write(vstval, ctx->run_ctx.stval);
@@ -69,6 +72,16 @@ static void save_guest_state(struct acrn_vcpu *vcpu)
 	ctx->run_ctx.stval = cpu_csr_read(vstval);
 	ctx->run_ctx.scause = cpu_csr_read(vscause);
 	ctx->run_ctx.satp = cpu_csr_read(vsatp);
+}
+
+static void load_host_state(struct acrn_vcpu *vcpu)
+{
+	uint64_t osatp;
+	uint64_t s2pt_satp = vcpu->vm->arch_vm.s2pt_satp;
+
+	osatp = cpu_csr_read(hgatp);
+	if (osatp != s2pt_satp)
+		s2pt_flush_guest(vcpu->vm);
 }
 
 static void init_host_state(struct acrn_vcpu *vcpu)
@@ -102,7 +115,7 @@ static void init_host_state(struct acrn_vcpu *vcpu)
 }
 
 static inline void load_guest_pmp(struct acrn_vcpu *vcpu) {}
-#else
+#else /* !CONFIG_MACRN */
 static void init_guest_state(struct acrn_vcpu *vcpu)
 {
 	struct guest_cpu_context *ctx = &vcpu->arch.contexts[vcpu->arch.cur_context];
@@ -150,6 +163,8 @@ static void save_guest_state(struct acrn_vcpu *vcpu)
 	ctx->run_ctx.scause = cpu_csr_read(scause);
 	ctx->run_ctx.satp = cpu_csr_read(satp);
 }
+
+#define load_host_state(vcpu) do {} while(0)
 
 static void init_host_state(struct acrn_vcpu *vcpu)
 {
@@ -209,7 +224,7 @@ void load_guest_pmp(struct acrn_vcpu *vcpu)
 	else
 		uos_pmp_switch();
 }
-#endif
+#endif /* CONFIG_MACRN */
 
 /**
  * @pre vcpu != NULL
@@ -233,6 +248,7 @@ void load_vmcs(struct acrn_vcpu *vcpu)
 {
 	void **vcpu_ptr = &get_cpu_var(vcpu_run);
 
+	load_host_state(vcpu);
 	load_guest_state(vcpu);
 	load_guest_pmp(vcpu);
 	*vcpu_ptr = (void *)vcpu;

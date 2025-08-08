@@ -103,6 +103,7 @@ static int32_t ree_switch_to_tee(struct acrn_vcpu *vcpu)
 	uint64_t msg_data_len = regs->a2;
 	struct rpmi_mm_request *mm = (struct rpmi_mm_request *)vcpu->mpxy.base;
 
+	return ret;
 	tee_vm = get_companion_vm(vcpu->vm);
 	tee_vcpu = vcpu_from_vid(tee_vm, vcpu->vcpu_id);
 	if (tee_vcpu != NULL) {
@@ -187,7 +188,7 @@ void handle_riscv_tee_int(struct ptirq_remapping_info *entry, uint16_t pcpu_id)
 		 * and continue to switch back to TEE for running.
 		 */
 		tee_vcpu = vcpu_from_pid(get_companion_vm(entry->vm), pcpu_id);
-		vlapic_set_intr(tee_vcpu, TEE_FIXED_NONSECURE_VECTOR, LAPIC_TRIG_EDGE);
+		vclint_set_intr(tee_vcpu, TEE_FIXED_NONSECURE_VECTOR, LAPIC_TRIG_EDGE);
 	} else if (is_tee_vm(entry->vm) && is_ree_vm(curr_vcpu->vm)) {
 		/*
 		 * Secure interrupt (interrupt belongs to TEE) comes

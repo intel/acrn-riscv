@@ -69,10 +69,12 @@ void start_secondary(uint32_t cpu)
 	init_mtrap();
 #endif
 	timer_init();
+#if 0
 	if (cpu == 4) {
 		shell_init();
 		console_setup_timer();
 	}
+#endif
 	init_sched(cpu);
 
 	local_irq_enable();

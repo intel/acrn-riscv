@@ -66,10 +66,6 @@ static inline uint64_t generate_satp(uint16_t vmid, uint64_t addr)
 	return SATP_MODE_SV48 | ((uint64_t)vmid << 44U) | (addr >> 12);
 }
 
-/*
- * setup_virt_paging is used to setup VTCR_EL2
- * */
-
 void setup_virt_paging(void)
 {
 	s2vm_inital_level = 0;
@@ -97,7 +93,7 @@ void s2pt_flush_guest(struct acrn_vm *vm)
 
 	flush_guest_tlb_local();
 
-	if (osatp != cpu_csr_read(hgatp))
+	if (osatp != s2pt_satp)
 	{
 		cpu_csr_write(hgatp, s2pt_satp);
 		/* Ensure hsatp is back in place before continuing. */
@@ -146,7 +142,7 @@ void s2pt_add_mr(struct acrn_vm *vm, uint64_t *vpn3_page,
 {
 	uint64_t prot = prot_orig;
 
-	pr_dbg("%s, vm[%d] hpa: 0x%016lx gpa: 0x%016lx size: 0x%016lx prot: 0x%016x\n",
+	pr_info("%s, vm[%d] hpa: 0x%016lx gpa: 0x%016lx size: 0x%016lx prot: 0x%016x\n",
 			__func__, vm->vm_id, hpa, gpa, size, prot);
 
 	spin_lock(&vm->s2pt_lock);
@@ -177,7 +173,7 @@ void s2pt_modify_mr(struct acrn_vm *vm, uint64_t *vpn3_page,
  */
 void s2pt_del_mr(struct acrn_vm *vm, uint64_t *vpn3_page, uint64_t gpa, uint64_t size)
 {
-	pr_dbg("%s,vm[%d] gpa 0x%lx size 0x%lx\n", __func__, vm->vm_id, gpa, size);
+	pr_info("%s,vm[%d] gpa 0x%lx size 0x%lx\n", __func__, vm->vm_id, gpa, size);
 
 	spin_lock(&vm->s2pt_lock);
 

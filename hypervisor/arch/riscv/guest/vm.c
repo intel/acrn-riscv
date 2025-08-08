@@ -317,7 +317,7 @@ int create_vm(struct acrn_vm *vm)
 #if 0
 	if (is_service_vm(vm)) {
 		pr_info("passthru devices");
-		passthru_devices_to_sos();
+		passthru_devices_to_vm(vm);
 	}
 #endif
 
