@@ -405,7 +405,7 @@ static inline void clac(void)
 	.endm
 
 	.macro cpu_ctx_save
-	addi sp, sp, -0x128
+	addi sp, sp, -0x130
 	sd sp, REG_SP(sp)
 	sd t0, REG_T0(sp)
 	csrr t0, sepc
@@ -452,7 +452,6 @@ static inline void clac(void)
 	sd t4, REG_T4(sp)
 	sd t5, REG_T5(sp)
 	sd t6, REG_T6(sp)
-
 	.endm
 
 	.macro cpu_ctx_restore
@@ -502,7 +501,7 @@ static inline void clac(void)
 	ld t5, REG_T5(sp)
 	ld t6, REG_T6(sp)
 	ld sp, REG_SP(sp)
-	addi sp, sp, 0x128
+	addi sp, sp, 0x130
 	.endm
 
 	.macro vcpu_ctx_save

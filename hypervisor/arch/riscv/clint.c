@@ -20,12 +20,7 @@ static int do_swi(int cpu)
 	uint64_t off = CLINT_SWI_REG;
 
 	off += (uint64_t)cpu * 4;
-	asm volatile (
-		"sw %0, 0(%1)"
-		:: "r"(val), "r"(off)
-		:"memory"
-	);
-	dsb();
+	mmio_writel(val, (void *)off);
 
 	return 0;
 }
@@ -56,8 +51,11 @@ static int ipi_start_cpu(int cpu, __unused uint64_t addr, __unused uint64_t arg)
 	return do_swi(cpu);
 }
 
+static inline void send_rfence_mask(uint64_t dest_mask, uint64_t addr, uint64_t size)
+{}
+
 static struct smp_ops clint_smp_ops =
-	{do_swi, send_single_swi, send_dest_ipi_mask, ipi_start_cpu};
+	{do_swi, send_single_swi, send_dest_ipi_mask, ipi_start_cpu, send_rfence_mask};
 
 static void clint_preinit_timer(void)
 {
@@ -75,7 +73,6 @@ static int clint_set_deadline(uint64_t deadline)
 	uint16_t cpu = get_pcpu_id();
 
 	mmio_writeq(deadline, (void *)CLINT_MTIMECMP(cpu));
-	//isb();
 
 	return 0;
 }

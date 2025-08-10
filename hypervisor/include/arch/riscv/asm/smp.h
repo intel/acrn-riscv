@@ -35,6 +35,7 @@ struct smp_ops {
 	void (*send_single_swi)(uint16_t pcpu_id, uint64_t vector);
 	void (*send_dest_ipi_mask)(uint64_t dest_mask, uint64_t vector);
 	int (*ipi_start_cpu)(int cpu, uint64_t addr, uint64_t arg);
+	void (*rfence)(uint64_t dest_mask, uint64_t addr, uint64_t size);
 };
 
 extern void register_smp_ops(struct smp_ops *ops);

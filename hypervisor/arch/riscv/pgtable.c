@@ -13,6 +13,8 @@
 #include <asm/mem.h>
 #include <asm/pgtable.h>
 #include <asm/page.h>
+#include <asm/smp.h>
+#include <asm/cpumask.h>
 #include <debug/logmsg.h>
 #include <acrn_hv_defs.h>
 
@@ -394,6 +396,14 @@ static void add_vpn2(const uint64_t *vpn3, uint64_t paddr_start, uint64_t vaddr_
 	}
 }
 
+static void tlb_all_sync(void)
+{
+	if (!smp_ops)
+		return;
+
+	return smp_ops->rfence(cpu_online_map, 0, 0);
+}
+
 void mmu_add(uint64_t *vpn3_page, uint64_t paddr_base, uint64_t vaddr_base, uint64_t size, uint64_t prot,
 		const struct memory_ops *mem_ops)
 {
@@ -420,6 +430,8 @@ void mmu_add(uint64_t *vpn3_page, uint64_t paddr_base, uint64_t vaddr_base, uint
 		paddr += (vaddr_next - vaddr);
 		vaddr = vaddr_next;
 	}
+
+	tlb_all_sync();
 }
 
 const uint64_t *lookup_address(uint64_t *vpn3_page, uint64_t addr, uint64_t *pg_size, const struct memory_ops *mem_ops)

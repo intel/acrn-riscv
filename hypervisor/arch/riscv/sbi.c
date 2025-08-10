@@ -61,17 +61,13 @@ static void send_single_swi(uint16_t pcpu_id, uint64_t vector)
 
 static void send_dest_ipi_mask(uint64_t dest_mask, uint64_t vector)
 {
-	uint16_t pcpu_id;
-	uint64_t mask = dest_mask;
+	sbi_ret ret;
 
-	pcpu_id = ffs64(mask);
-	if (pcpu_id--)
-		return;
-	while (pcpu_id < NR_CPUS) {
-		clear_bit(pcpu_id, &mask);
-		send_single_swi(pcpu_id, vector);
-		pcpu_id = ffs64(mask);
-	}
+	ret = sbi_ecall(dest_mask, 0, 0, 0, 0, 0, SBI_TYPE_IPI_SEND_IPI, SBI_ID_IPI);
+	if (ret.error != SBI_SUCCESS)
+		pr_err("%s: %lx", __func__, ret.error);
+
+	return;
 }
 
 static int ipi_start_cpu(int cpu, uint64_t addr, uint64_t arg)
@@ -86,8 +82,19 @@ static int ipi_start_cpu(int cpu, uint64_t addr, uint64_t arg)
 	return ret.error;
 }
 
+static void send_rfence_mask(uint64_t dest_mask, uint64_t addr, uint64_t size)
+{
+	sbi_ret ret;
+
+	ret = sbi_ecall(dest_mask, 0, 0, 0, 0, 0, SBI_TYPE_RFENCE_SFNECE_VMA, SBI_ID_RFENCE);
+	if (ret.error != SBI_SUCCESS)
+		pr_err("%s: %lx", __func__, ret.error);
+
+	return;
+}
+
 static struct smp_ops sbi_smp_ops =
-	{do_swi, send_single_swi, send_dest_ipi_mask, ipi_start_cpu};
+	{do_swi, send_single_swi, send_dest_ipi_mask, ipi_start_cpu, send_rfence_mask};
 
 void init_sbi_ipi(void)
 {
