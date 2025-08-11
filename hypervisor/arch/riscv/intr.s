@@ -103,21 +103,18 @@ mout:
 	.balign 4
 	.globl strap_handler
 strap_handler:
-#	cpu_disable_irq
-	#csrrw sp, sscratch, sp
 	cpu_ctx_save
-	li a0, 0
-	csrw sip, a0
 	csrr a0, scause
 	li a1, 0x8000000000000000
 	and a1, a0, a1
 	andi a0, a0, 0xff
-	beqz a1, sout
+	beqz a1, sexcept
 	call sint_handler
+	j sout
+sexcept:
+	call sexpt_handler
 sout:
 	cpu_ctx_restore
-#	cpu_enable_irq
-	#csrrw sp, sscratch, sp
 	sret
 
 boot_sswi_handler:

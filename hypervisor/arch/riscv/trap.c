@@ -21,7 +21,8 @@
 
 void sexpt_handler(void)
 {
-	early_printk("resv sexpt_handler\n");
+	early_printk("Panic: unexpected smode exception\n");
+	while(1);
 }
 
 void sswi_handler(void)
@@ -32,8 +33,8 @@ void sswi_handler(void)
 
 	s[14] = cpu + '0';
 	early_printk(s);
-	asm volatile ("csrwi sip, 0\n\t"::);
 #endif
+	asm volatile ("csrwi sip, 0\n\t"::);
 	if (test_bit(NOTIFY_VCPU_SWI, per_cpu(swi_vector, cpu).type))
 		clear_bit(NOTIFY_VCPU_SWI, &(per_cpu(swi_vector, cpu).type));
 
@@ -57,9 +58,13 @@ void stimer_handler(void)
 
 void sexti_handler(void)
 {
+#if 0
 	struct cpu_regs regs;
+
 	dispatch_interrupt(&regs);
 	early_printk("sexti_handler\n");
+#endif
+	handle_mexti();
 }
 
 static irq_handler_t sirq_handler[] = {
