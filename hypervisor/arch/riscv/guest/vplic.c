@@ -299,6 +299,9 @@ void vplic_accept_intr(struct acrn_vcpu *vcpu, uint32_t vector, bool level)
 	uint64_t flags;
 
 	vplic = vcpu_vplic(vcpu);
+
+	if (!vplic->enabled)
+		return;
 	spin_lock_irqsave(&vplic->lock, &flags);
 	if (vector < PLIC_NUM_SOURCES) {
 		if (level)
@@ -323,6 +326,8 @@ void vcpu_inject_extint(struct acrn_vcpu *vcpu)
 #endif
 	uint64_t flags;
 
+	if (!vplic->enabled)
+		return;
 	spin_lock_irqsave(&vplic->lock, &flags);
 	irq = vplic_get_deliverable_irq(vplic, vcpu->vcpu_id);
 	if (irq) {
@@ -392,4 +397,5 @@ void vplic_init(struct acrn_vm *vm)
 		(uint64_t)vplic->plic_base + DEFAULT_PLIC_SIZE, (void *)vplic, false);
 
 	memset(&vplic->regs, 0U, sizeof(struct plic_regs));
+	vplic->enabled = 1;
 }

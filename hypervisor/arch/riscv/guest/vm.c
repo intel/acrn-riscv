@@ -266,13 +266,10 @@ static int map_irq_to_vm(struct acrn_vm *vm, unsigned int irq)
 
 static void passthru_devices_to_vm(struct acrn_vm *vm)
 {
-	// Map all the devices to guest 0x8000000 - 0xb000000
 	s2pt_add_mr(vm, vm->arch_vm.s2ptp, SOS_DEVICE_MMIO_START, SOS_DEVICE_MMIO_START,
-			SOS_DEVICE_MMIO_SIZE, PAGE_V);
-//	s2pt_del_mr(vm, vm->arch_vm.s2ptp, CONFIG_CLINT_BASE, CONFIG_CLINT_SIZE);
-//	s2pt_del_mr(vm, vm->arch_vm.s2ptp, CONFIG_UART_BASE, 0x1000);
-//	s2pt_add_mr(vm, vm->arch_vm.s2ptp, CONFIG_UART_BASE, CONFIG_UART_BASE,
-//			0x1000, PAGE_V);
+			CONFIG_PLIC_BASE, PAGE_V | PAGE_ATTR_IO);
+	s2pt_add_mr(vm, vm->arch_vm.s2ptp, CONFIG_UART_BASE + 0x1000, CONFIG_UART_BASE + 0x1000,
+			SOS_DEVICE_MMIO_SIZE - (CONFIG_UART_BASE + 0x1000), PAGE_V | PAGE_ATTR_IO);
 
 	for (int irq = 32; irq < 992; irq++) {
 		map_irq_to_vm(vm, irq);
@@ -322,7 +319,8 @@ int create_vm(struct acrn_vm *vm)
 #endif
 
 	vclint_init(vm);
-	vplic_init(vm);
+	if (is_service_vm(vm))
+		vplic_init(vm);
 
 	for (i = 0 ; i < CONFIG_MAX_VCPU; /*vm->max_vcpu*/ i++) {
 		ret = create_vcpu(vm, i);
