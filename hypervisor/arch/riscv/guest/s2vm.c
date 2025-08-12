@@ -17,6 +17,7 @@
 #include <asm/guest/s2vm.h>
 #include <asm/notify.h>
 #include <asm/smp.h>
+#include <asm/cpumask.h>
 #include <asm/guest/vm.h>
 
 unsigned int s2vm_inital_level;
@@ -92,6 +93,8 @@ void s2pt_flush_guest(struct acrn_vm *vm)
 	}
 
 	flush_guest_tlb_local();
+	if (smp_ops)
+		smp_ops->hfence(cpu_online_map, 0, 0);
 
 	if (osatp != s2pt_satp)
 	{

@@ -93,8 +93,19 @@ static void send_rfence_mask(uint64_t dest_mask, uint64_t addr, uint64_t size)
 	return;
 }
 
+static void send_hfence_mask(uint64_t dest_mask, uint64_t addr, uint64_t size)
+{
+	sbi_ret ret;
+
+	ret = sbi_ecall(dest_mask, 0, 0, 0, 0, 0, SBI_TYPE_RFENCE_HFNECE_GVMA, SBI_ID_RFENCE);
+	if (ret.error != SBI_SUCCESS)
+		pr_err("%s: %lx", __func__, ret.error);
+
+	return;
+}
+
 static struct smp_ops sbi_smp_ops =
-	{do_swi, send_single_swi, send_dest_ipi_mask, ipi_start_cpu, send_rfence_mask};
+	{do_swi, send_single_swi, send_dest_ipi_mask, ipi_start_cpu, send_rfence_mask, send_hfence_mask};
 
 void init_sbi_ipi(void)
 {

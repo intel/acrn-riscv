@@ -54,8 +54,11 @@ static int ipi_start_cpu(int cpu, __unused uint64_t addr, __unused uint64_t arg)
 static inline void send_rfence_mask(uint64_t dest_mask, uint64_t addr, uint64_t size)
 {}
 
+static inline void send_hfence_mask(uint64_t dest_mask, uint64_t addr, uint64_t size)
+{}
+
 static struct smp_ops clint_smp_ops =
-	{do_swi, send_single_swi, send_dest_ipi_mask, ipi_start_cpu, send_rfence_mask};
+	{do_swi, send_single_swi, send_dest_ipi_mask, ipi_start_cpu, send_rfence_mask, send_hfence_mask};
 
 static void clint_preinit_timer(void)
 {
