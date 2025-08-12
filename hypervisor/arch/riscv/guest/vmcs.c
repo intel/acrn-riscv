@@ -32,9 +32,9 @@ static void init_guest_state(struct acrn_vcpu *vcpu)
 	cpu_csr_write(vsstatus, ctx->run_ctx.sstatus);
 	cpu_csr_write(vsepc, ctx->run_ctx.sepc);
 	cpu_csr_write(vsip, ctx->run_ctx.sip);
-//	cpu_csr_write(hvip, (ctx->run_ctx.sip & 0x222) << 1);
+	cpu_csr_write(hvip, (ctx->run_ctx.sip & 0x202) << 1);
 	cpu_csr_write(vsie, ctx->run_ctx.sie);
-//	cpu_csr_write(hie, (ctx->run_ctx.sie & 0x22) << 1);
+	cpu_csr_write(hie, (ctx->run_ctx.sie & 0x222) << 1);
 	cpu_csr_write(vstvec, ctx->run_ctx.stvec);
 	cpu_csr_write(vsscratch, ctx->run_ctx.sscratch);
 	cpu_csr_write(vstval, ctx->run_ctx.stval);
@@ -48,12 +48,8 @@ static void load_guest_state(struct acrn_vcpu *vcpu)
 
 	cpu_csr_write(vsstatus, ctx->run_ctx.sstatus);
 	cpu_csr_write(vsepc, ctx->run_ctx.sepc);
-//	cpu_csr_write(vsip, ctx->run_ctx.sip);
-//	cpu_csr_write(hvip, (ctx->run_ctx.sip & 0x2) << 1);
-//	cpu_csr_set(hvip, (ctx->run_ctx.sip & 0x2) << 1);
-	cpu_csr_set(hvip, (ctx->run_ctx.sip & 0x202) << 1);
-//	cpu_csr_write(vsie, ctx->run_ctx.sie);
-	cpu_csr_set(hie, (ctx->run_ctx.sie & 0x202) << 1);
+	cpu_csr_write(hvip, (ctx->run_ctx.sip & 0x202) << 1);
+	cpu_csr_write(hie, (ctx->run_ctx.sie & 0x222) << 1);
 	cpu_csr_write(vstvec, ctx->run_ctx.stvec);
 	cpu_csr_write(vsscratch, ctx->run_ctx.sscratch);
 	cpu_csr_write(vstval, ctx->run_ctx.stval);
@@ -117,7 +113,7 @@ static void init_host_state(struct acrn_vcpu *vcpu)
 }
 
 static inline void load_guest_pmp(struct acrn_vcpu *vcpu) {}
-#else /* !CONFIG_MACRN */
+#else /* CONFIG_MACRN */
 static void init_guest_state(struct acrn_vcpu *vcpu)
 {
 	struct guest_cpu_context *ctx = &vcpu->arch.contexts[vcpu->arch.cur_context];
