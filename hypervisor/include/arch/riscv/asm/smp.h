@@ -29,6 +29,7 @@ extern void smp_clear_cpu_maps (void);
 extern void start_pcpus(uint32_t cpu);
 extern int kick_pcpu(int cpu);
 extern int smp_platform_init(void);
+extern void start_console(uint32_t cpu);
 
 struct smp_ops {
 	int (*kick_cpu)(int cpu);

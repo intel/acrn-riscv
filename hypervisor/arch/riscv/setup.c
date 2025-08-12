@@ -58,16 +58,6 @@ void start_acrn(uint32_t cpu, unsigned long boot_phys_offset,
 
 	timer_init();
 	pr_info("init timer\r\n");
-	console_init();
-#if 0
-	if (cpu == 4) {
-		shell_init();
-		console_setup_timer();
-	}
-#endif
-	shell_init();
-//	console_setup_timer();
-	pr_info("console init \r\n");
 
 	smp_platform_init();
 	start_pcpus(cpu);

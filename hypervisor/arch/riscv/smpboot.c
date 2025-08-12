@@ -52,6 +52,20 @@ void smp_clear_cpu_maps(void)
 	set_bit(0, &cpu_possible_map);
 }
 
+void start_console(uint32_t cpu)
+{
+	console_init();
+/*
+ * FIXME: currently use the last cpu to handle console timer as
+ * the timer seems instable when using BSP to host console.
+ */
+	if (cpu == (NR_CPUS - 1)) {
+		shell_init();
+		console_setup_timer();
+	}
+	pr_info("console init done\r\n");
+}
+
 void start_secondary(uint32_t cpu)
 {
 	struct thread_object *idle = &per_cpu(idle, cpu);
@@ -69,12 +83,7 @@ void start_secondary(uint32_t cpu)
 	init_mtrap();
 #endif
 	timer_init();
-#if 0
-	if (cpu == 4) {
-		shell_init();
-		console_setup_timer();
-	}
-#endif
+	start_console(cpu);
 	init_sched(cpu);
 
 	local_irq_enable();
@@ -97,7 +106,6 @@ static int start_pcpu(int cpu)
 
 	return smp_ops->ipi_start_cpu(cpu, (uint64_t)secondary, 0);
 }
-
 
 /* Bring up a remote CPU */
 int __cpu_up(unsigned int cpu)
