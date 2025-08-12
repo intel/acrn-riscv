@@ -31,6 +31,7 @@ static void sbi_ecall_base_probe(unsigned long id, unsigned long *out_val)
 	case SBI_ID_IPI:
 	case SBI_ID_RFENCE:
 	case SBI_ID_TIMER:
+	case SBI_ID_HSM:
 	case SBI_ID_MPXY:
 		*out_val = 1;
 		break;
@@ -269,7 +270,38 @@ static void sbi_rfence_handler(struct acrn_vcpu *vcpu, struct cpu_regs *regs)
 
 static void sbi_hsm_handler(struct acrn_vcpu *vcpu, struct cpu_regs *regs)
 {
-	regs->a0 = SBI_ENOTSUPP;
+	uint64_t *ret = &regs->a0;
+	uint64_t *out_val = &regs->a1;
+	uint64_t funcid = regs->a6;
+	uint64_t hartid = regs->a0;
+	uint64_t saddr = regs->a1;
+	uint64_t arg1 = regs->a2;
+	struct acrn_vcpu *target;
+	struct guest_cpu_context *ctx;
+
+	target = &vcpu->vm->hw.vcpu[hartid];
+	ctx = &target->arch.contexts[target->arch.cur_context];
+	*ret = SBI_SUCCESS;
+	*out_val = 0;
+	switch (funcid) {
+	case SBI_TYPE_HSM_HART_START:
+		vcpu_set_rip(target, saddr);
+		vcpu_set_gpreg(target, CPU_REG_A0, target->vcpu_id);
+		vcpu_set_gpreg(target, CPU_REG_A1, arg1);
+		ctx->run_ctx.satp = 0;
+		ctx->run_ctx.sstatus &= ~0x2UL;
+		launch_vcpu(target);
+		break;
+	case SBI_TYPE_HSM_HART_GET_STATUS:
+		if (target->state != VCPU_RUNNING)
+			*out_val = 1;
+		break;
+	case SBI_TYPE_HSM_HART_STOP:
+	case SBI_EXT_HSM_HART_SUSPEND:
+	default:
+		*ret = SBI_ENOTSUPP;
+		break;
+	}
 
 	return;
 }
