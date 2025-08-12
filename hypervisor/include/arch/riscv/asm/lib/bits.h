@@ -16,11 +16,10 @@
 #define __clear_bit(n,p)	clear_bit(n,p)
 
 #define always_inline __inline__ __attribute__ ((__always_inline__))
-#ifndef CONFIG_MACRN
-static uint64_t ffsl(uint64_t x)
-//static always_inline uint64_t ffsl(uint64_t x)
+#ifdef CONFIG_MACRN
+static always_inline uint64_t ffsl(uint64_t x)
 {
-	int m = 0x1, i;
+	uint64_t m = 0x1, i;
 
 	for (i = 0; i < BITS_PER_LONG; i++) {
 		if ((x & m) != 0)
@@ -31,7 +30,7 @@ static uint64_t ffsl(uint64_t x)
 	return i;
 }
 
-static inline int flsl(uint64_t x)
+static always_inline int flsl(uint64_t x)
 {
 	uint64_t m = 0x8000000000000000, i;
 
@@ -43,14 +42,14 @@ static inline int flsl(uint64_t x)
 
 	return BITS_PER_LONG - i;
 }
-#else
+#else /* CONFIG_MACRN */
 static always_inline uint64_t ffsl(uint64_t x)
 {
 	asm volatile ("ctz %0, %1" : "=r"(x) : "r"(x));
 	return x;
 }
 
-static inline int flsl(uint64_t x)
+static always_inline int flsl(uint64_t x)
 {
 	asm volatile ("clz %0, %1" : "=r"(x) : "r"(x));
 	return BITS_PER_LONG - 1 - x;
