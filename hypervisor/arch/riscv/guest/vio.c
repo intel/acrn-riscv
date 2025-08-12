@@ -91,27 +91,33 @@ static uint64_t get_gpa(struct run_context *ctx, uint64_t gva)
 
 	return gpa;
 }
+
+static bool need_pagetable_walk(uint64_t satp)
+{
+	return (satp & 0xF000000000000000UL) != 0;
+}
+
 #else /* !CONFIG_MACRN */
 
 static uint64_t get_gpa(struct run_context *ctx, __unused uint64_t gva)
 {
-	return ctx->cpu_gp_regs.regs.htval << 2;
+	return (ctx->cpu_gp_regs.regs.htval << 2) | (ctx->cpu_gp_regs.regs.tval & 0x3);
 }
 
 uint32_t get_instruction(struct run_context *ctx, __unused uint32_t *len)
 {
 	uint64_t ins = ctx->cpu_gp_regs.regs.htinst;
 
-	*len = ((ins & 0x11) == 0x1)? 16: 32;
+	*len = ((ins & 0x3) == 0x1)? 16: 32;
 
 	return ins;
 }
-#endif
 
 static bool need_pagetable_walk(uint64_t satp)
 {
-	return (satp & 0xF000000000000000UL) != 0;
+	return true;
 }
+#endif
 
 int32_t mmio_access_vmexit_handler(struct acrn_vcpu *vcpu)
 {

@@ -33,12 +33,19 @@
 #define INS32_OPSIZE_HALF	0x1
 #define INS32_OPSIZE_WORD	0x2
 #define INS32_OPSIZE_DWORD	0x3
+#define INS32_OPSIZE_UBYTE	0x4
+#define INS32_OPSIZE_UHALF	0x5
+#define INS32_OPSIZE_UWORD	0x7
 
 #define BIT64_MASK		0xffffffffffffffff
 #define BIT32_MASK		0xffffffff
+#define BIT32_U_MASK		0xffffffff00000000
 #define BIT16_MASK		0xffff
+#define BIT16_U_MASK		0xffff0000
 #define BIT8_MASK		0xff
+#define BIT8_U_MASK		0xff00
 
+#ifdef CONFIG_MACRN
 static inline uint64_t get_mask(uint32_t size)
 {
 	uint64_t mask;
@@ -62,7 +69,6 @@ static inline uint64_t get_mask(uint32_t size)
 	return mask;
 }
 
-#ifdef CONFIG_MACRN
 static int32_t emulate_ins16(struct acrn_vcpu *vcpu, uint32_t ins, uint32_t size)
 {
 	struct acrn_mmio_request *mmio_req = &vcpu->req.reqs.mmio_request;
@@ -185,23 +191,53 @@ int32_t emulate_pseudo(struct acrn_vcpu *vcpu, uint32_t ins, uint32_t size)
 	return rc;
 }
 
+static inline uint64_t get_mask(uint32_t ins)
+{
+	uint64_t mask;
+
+	int size = (ins & INS32_OPSIZE_MASK) >> 12;
+
+	switch (size) {
+	case INS32_OPSIZE_BYTE:
+	case INS32_OPSIZE_UBYTE:
+		mask = BIT8_MASK;
+		break;
+	case INS32_OPSIZE_HALF:
+	case INS32_OPSIZE_UHALF:
+		mask = BIT16_MASK;
+		break;
+	case INS32_OPSIZE_WORD:
+	case INS32_OPSIZE_UWORD:
+		mask = BIT32_MASK;
+		break;
+	case INS32_OPSIZE_DWORD:
+	default:
+		mask = BIT64_MASK;
+		break;
+	}
+
+	return mask;
+}
+
 int32_t emulate_ins32(struct acrn_vcpu *vcpu, uint32_t ins, uint32_t size)
 {
 	struct acrn_mmio_request *mmio_req = &vcpu->req.reqs.mmio_request;
 	uint64_t pc;
-	int32_t reg, rc = 0;
-	int64_t mask = get_mask(size);
+	uint32_t reg, op;
+	int32_t rc = 0;
+	int64_t mask = get_mask(ins);
 	int32_t xlen = (ins & 0x3) == 0x1 ? 2: 4;
 
 	pc = vcpu_get_gpreg(vcpu, CPU_REG_IP);
 	vcpu_set_gpreg(vcpu, CPU_REG_IP, pc + xlen);
 
-	if ((INS32_OPCODE_MASK & ins) == 0x3) {
+	op = INS32_OPCODE_MASK & ins;
+	if (op == 0x3 || op == 0x1) {
 		reg = (ins & INS32_OPRD_MASK) >> 7;
 		vcpu_set_gpreg(vcpu, reg, (mmio_req->value) & mask);
-	} else if ((INS32_OPCODE_MASK & ins) == 0x23) {
+	} else if (op == 0x23 || op == 0x21) {
 		reg = (ins & INS32_OPRS2_MASK) >> 20;
-		mmio_req->value = vcpu_get_gpreg(vcpu, reg) & mask;
+		mmio_req->value = (vcpu_get_gpreg(vcpu, reg) & mask);
 	} else {
 		rc = -EFAULT;
 	}
@@ -234,29 +270,6 @@ int32_t emulate_instruction(struct acrn_vcpu *vcpu)
 	return ret;
 }
 
-static int32_t decode_ins32(struct acrn_vcpu *vcpu, uint32_t ins)
-{
-	int size = (ins & INS32_OPSIZE_MASK) >> 12;
-
-	switch (size) {
-	case INS32_OPSIZE_BYTE:
-		size = 1;
-		break;
-	case INS32_OPSIZE_HALF:
-		size = 2;
-		break;
-	case INS32_OPSIZE_WORD:
-		size = 4;
-		break;
-	case INS32_OPSIZE_DWORD:
-	default:
-		size = 8;
-		break;
-	}
-
-	return size;
-}
-
 static int32_t decode_pseudo(struct acrn_vcpu *vcpu, uint32_t ins)
 {
 	int size = (ins & INS32_OPSIZE_MASK) >> 12;
@@ -274,6 +287,31 @@ static int32_t decode_pseudo(struct acrn_vcpu *vcpu, uint32_t ins)
 	return size;
 }
 
+static int32_t decode_ins32(struct acrn_vcpu *vcpu, uint32_t ins)
+{
+	int size = (ins & INS32_OPSIZE_MASK) >> 12;
+
+	switch (size) {
+	case INS32_OPSIZE_BYTE:
+	case INS32_OPSIZE_UBYTE:
+		size = 1;
+		break;
+	case INS32_OPSIZE_HALF:
+	case INS32_OPSIZE_UHALF:
+		size = 2;
+		break;
+	case INS32_OPSIZE_WORD:
+	case INS32_OPSIZE_UWORD:
+		size = 4;
+		break;
+	case INS32_OPSIZE_DWORD:
+	default:
+		size = 8;
+		break;
+	}
+
+	return size;
+}
 
 int32_t decode_instruction(struct acrn_vcpu *vcpu, uint32_t ins, uint32_t xlen)
 {
