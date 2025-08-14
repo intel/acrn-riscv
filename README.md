@@ -11,11 +11,11 @@ The project is presented at RISC-V summit China 2023.
 
 ## Current State
 
-The current development is based on QEMU RV64 virtual platform. The ACRN hypervisor has bootup successfully to ACRN console with the support of SMP, MMU, CLINT & PLIC. The basic virtualization support includes VM lifecycle management, vCPU context switch, memory virtualization via stage-2 page-table translation, IO virtualization via MMIO emulation, as well as IRQ virtualization with CLINT & PLIC emulation.  
+The current development is based on QEMU RV64 virtual platform. The ACRN hypervisor has bootup successfully to ACRN console with the support of SMP, MMU, CLINT & PLIC. The basic virtualization support includes VM lifecycle management, vCPU context switch, memory virtualization via stage-2 page-table translation, IO virtualization via MMIO emulation, as well as IRQ virtualization with CLINT & PLIC emulation.
 
-Besides, m-ACRN has been verified on both RV64-QEMU virtual platform and TH1520 based hardware platform. Such configurations can run well as Duo-Linux-VMs, Linux SOS + Android UOS, and etc.
+Besides, m-ACRN has been verified on both RV64-QEMU virtual platform and Sophgo SG-2042 machine. Such configurations can run well as Duo-Linux-VMs, Linux SOS + Android UOS, Linux VM + OP-TEE VM and etc.
 
-h-ACRN is just tested on RV64-QEMU with a built-in KTEST kernel for unit test purpose. Linux VM support is in the TODO list.
+h-ACRN is also tested on RV64-QEMU with Linux VM + OP-TEE VM.
 
 Contact haicheng.li@intel.com for any further questions.
 
@@ -34,9 +34,9 @@ This project is released under the terms of [BSD-3-Clause license](LICENSE).
 *	$./run.sh
 *	$./gdb.sh
 
-### RV-ACRN + Linux VM + OP-TEE ###
+### RV-ACRN + Linux VM + OP-TEE VM ###
 
-you can try our RV-ACRN based TEE solution with following extra repo
+You can try our RV-ACRN based TEE solution with following extra repo
 
 hACRN+Linux+OpTEE:
 1.	Linux: https://github.com/intel/linux-riscv/tree/hvp-acrn
