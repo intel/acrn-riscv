@@ -34,6 +34,18 @@ This project is released under the terms of [BSD-3-Clause license](LICENSE).
 *	$./run.sh
 *	$./gdb.sh
 
+### RV-ACRN + Linux VM + OP-TEE ###
+
+you can try our RV-ACRN based TEE solution with following extra repo
+
+hACRN+Linux+OpTEE:
+1.	Linux: https://github.com/intel/linux-riscv/tree/hvp-acrn
+2.	OpTEE: https://github.com/haicheng-li/optee_os
+
+mACRN+Linux+OpTEE:
+1.	Linux: https://github.com/intel/linux-riscv/tree/hvp-tee
+2.	OpTEE: https://github.com/haicheng-li/optee_os
+
 
 [ACRN]: https://github.com/projectacrn/acrn-hypervisor
 [RISCV64]: https://riscv.org/
