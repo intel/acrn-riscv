@@ -64,6 +64,7 @@ void start_acrn(uint32_t cpu, unsigned long boot_phys_offset,
 	pr_info("Brought up %ld CPUs\n", (long)num_online_cpus());
 	smp_call_init();
 
+	start_console(cpu);
 	setup_virt_paging();
 	init_sched(cpu);
 
