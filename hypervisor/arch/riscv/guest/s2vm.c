@@ -151,8 +151,6 @@ void s2pt_add_mr(struct acrn_vm *vm, uint64_t *vpn3_page,
 	spin_lock(&vm->s2pt_lock);
 	mmu_add(vpn3_page, hpa, gpa, size, prot, &vm->arch_vm.s2pt_mem_ops);
 	spin_unlock(&vm->s2pt_lock);
-
-	s2pt_flush_guest(vm);
 }
 
 void s2pt_modify_mr(struct acrn_vm *vm, uint64_t *vpn3_page,
@@ -164,12 +162,8 @@ void s2pt_modify_mr(struct acrn_vm *vm, uint64_t *vpn3_page,
 	pr_dbg("%s,vm[%d] gpa 0x%lx size 0x%lx\n", __func__, vm->vm_id, gpa, size);
 
 	spin_lock(&vm->s2pt_lock);
-
 	mmu_modify_or_del(vpn3_page, gpa, size, local_prot, prot_clr, &(vm->arch_vm.s2pt_mem_ops), MR_MODIFY);
-
 	spin_unlock(&vm->s2pt_lock);
-
-	s2pt_flush_guest(vm);
 }
 /**
  * @pre [gpa,gpa+size) has been mapped into host physical memory region
@@ -179,12 +173,8 @@ void s2pt_del_mr(struct acrn_vm *vm, uint64_t *vpn3_page, uint64_t gpa, uint64_t
 	pr_info("%s,vm[%d] gpa 0x%lx size 0x%lx\n", __func__, vm->vm_id, gpa, size);
 
 	spin_lock(&vm->s2pt_lock);
-
 	mmu_modify_or_del(vpn3_page, gpa, size, 0UL, 0UL, &vm->arch_vm.s2pt_mem_ops, MR_DEL);
-
 	spin_unlock(&vm->s2pt_lock);
-
-	s2pt_flush_guest(vm);
 }
 
 /**

@@ -12,6 +12,8 @@
 #include <asm/init.h>
 #include <asm/pgtable.h>
 #include <asm/page.h>
+#include <asm/smp.h>
+#include <asm/cpumask.h>
 #include <asm/vm_config.h>
 
 #define VPN3_PAGE_NUM(size)	1UL
@@ -110,6 +112,14 @@ static union pgtable_pages_info ppt_pages_info = {
 };
 #endif
 
+static void ppt_tlb_all_sync(void)
+{
+	if (!smp_ops)
+		return;
+
+	return smp_ops->rfence(cpu_online_map, 0, 0);
+}
+
 const struct memory_ops ppt_mem_ops = {
 	.info = &ppt_pages_info,
 	.large_page_support = large_page_support,
@@ -119,6 +129,7 @@ const struct memory_ops ppt_mem_ops = {
 	.get_pdpt_page = ppt_get_vpn2_page,
 	.get_pd_page = ppt_get_vpn1_page,
 	.get_pt_page = ppt_get_vpn0_page,
+	.tlb_all_sync = ppt_tlb_all_sync,
 	.clflush_pagewalk = ppt_clflush_pagewalk,
 	.tweak_exe_right = nop_tweak_exe_right,
 	.recover_exe_right = nop_recover_exe_right,
@@ -168,6 +179,14 @@ static inline uint64_t s2pt_pgentry_present(uint64_t pte)
 	return pte & PAGE_V;
 }
 
+static void s2pt_tlb_all_sync(void)
+{
+	if (!smp_ops)
+		return;
+
+	return smp_ops->hfence(cpu_online_map, 0, 0);
+}
+
 void init_s2pt_mem_ops(struct memory_ops *mem_ops, uint16_t vm_id)
 {
 	s2pt_pages_info[vm_id].s2pt.top_address_space = CONFIG_GUEST_ADDRESS_SPACE_SIZE;
@@ -183,6 +202,8 @@ void init_s2pt_mem_ops(struct memory_ops *mem_ops, uint16_t vm_id)
 	mem_ops->get_pdpt_page = s2pt_get_vpn2_page;
 	mem_ops->get_pd_page = s2pt_get_vpn1_page;
 	mem_ops->get_pt_page = s2pt_get_vpn0_page;
+	mem_ops->get_pt_page = s2pt_get_vpn0_page;
+	mem_ops->tlb_all_sync = s2pt_tlb_all_sync;
 	mem_ops->clflush_pagewalk = s2pt_clflush_pagewalk;
 	mem_ops->large_page_support = large_page_support;
 	mem_ops->tweak_exe_right = nop_tweak_exe_right;
