@@ -186,12 +186,12 @@ static void sbi_rcall_sfence_vma(struct sbi_rfence_call *rcall)
 	uint64_t i;
 
 	if ((base == 0 && size == 0) || (size == SBI_RFENCE_FLUSH_ALL)) {
-		flush_guest_tlb_local();
+		flush_guest_vtlb_local();
 		return;
 	}
 
 	for (i = 0; i < size; i += PAGE_SIZE)
-		flush_tlb_addr(base + i);
+		flush_guest_vtlb_addr(base + i);
 }
 
 static void sbi_rcall_sfence_vma_asid(struct sbi_rfence_call *rcall)
@@ -202,17 +202,17 @@ static void sbi_rcall_sfence_vma_asid(struct sbi_rfence_call *rcall)
 	uint64_t i;
 
 	if (base == 0 && size == 0) {
-		flush_guest_tlb_local();
+		flush_guest_vtlb_local();
 		return;
 	}
 
 	if (size == SBI_RFENCE_FLUSH_ALL) {
-		flush_tlb_asid(asid);
+		flush_guest_vtlb_asid(asid);
 		return;
 	}
 
 	for (i = 0; i < size; i += PAGE_SIZE)
-		flush_tlb_addr_asid(base + i, asid);
+		flush_guest_vtlb_addr_asid(base + i, asid);
 }
 
 static void sbi_rcall_fence_i(struct sbi_rfence_call *rcall)

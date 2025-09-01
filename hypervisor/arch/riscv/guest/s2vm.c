@@ -92,7 +92,7 @@ void s2pt_flush_guest(struct acrn_vm *vm)
 		isb();
 	}
 
-	flush_guest_tlb_local();
+	flush_guest_gtlb_local();
 	if (smp_ops)
 		smp_ops->hfence(cpu_online_map, 0, 0);
 
@@ -275,7 +275,7 @@ void s2vm_restore_state(struct acrn_vcpu *vcpu)
 	// */
 	isb();
 
-	flush_guest_tlb_local();
+	flush_guest_gtlb_local();
 	///*
 	// * Flush local TLB for the domain to prevent wrong TLB translation
 	// * when running multiple vCPU of the same domain on a single pCPU.
